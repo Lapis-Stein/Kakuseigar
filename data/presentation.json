@@ -1,0 +1,24 @@
+{
+  "dataset_version": "0.4-ui-1",
+  "site_title": "青娥のお話案内",
+  "site_url": "https://lapis-stein.github.io/Kakuseigar/",
+  "site_description": "少しお話ししませんか。青娥が、あなたの好みに合いそうな東方二次創作小説をご案内します。",
+  "narrator": {
+    "id": "seiga",
+    "name": "霍青娥",
+    "images": {
+      "idle": "assets/seiga/idle.png",
+      "recommend": "assets/seiga/recommend.png",
+      "tease": "assets/seiga/tease.png",
+      "amused": "assets/seiga/amused.png",
+      "listening": "assets/seiga/listening.png",
+      "adjusting-glasses": "assets/seiga/adjusting-glasses.png",
+      "thinking": "assets/seiga/thinking.png",
+      "sleeve-smile": "assets/seiga/sleeve-smile.png",
+      "celebrate": "assets/seiga/celebrate.png",
+      "ending": "assets/seiga/ending.png"
+    },
+    "question_moods": ["idle", "amused", "listening", "adjusting-glasses", "thinking", "sleeve-smile"]
+  },
+  "public_cast_by_work": {}
+}

@@ -1,0 +1,2180 @@
+{
+  "schema_version": "0.4",
+  "status": "draft",
+  "author_x_url": "https://x.com/LapisIsStein",
+  "features": {
+    "taste": {
+      "banter": "軽妙な掛け合い",
+      "schemes": "駆け引き",
+      "craft": "技・仕組み・工夫",
+      "action": "戦闘・危機の突破",
+      "warmth": "親しみ・関係の近さ",
+      "reflection": "割り切れない選択・余韻",
+      "values": "譲れない線・価値観の食い違い"
+    },
+    "behavior": {
+      "curiosity": "理由や仕組みを確かめる",
+      "conviction": "自分の基準を保つ",
+      "bargaining": "条件を組み替える",
+      "care": "相手や関係を気にかける",
+      "practicality": "手間・損得・実用を考える",
+      "caution": "確かめてから判断する"
+    }
+  },
+  "rules": {
+    "profile_maxima": {
+      "taste": 4,
+      "behavior": 2
+    },
+    "entry_prior": {
+      "max_points": 16,
+      "light_entry_max": 4
+    },
+    "role_weights": {
+      "main": 1,
+      "support": 0.6,
+      "indirect": 0
+    },
+    "taste_candidate_band": 20,
+    "mixed_weights": {
+      "taste": 0.7,
+      "behavior": 0.3
+    },
+    "first_normal_result_after": 5,
+    "ordinary_questions_between_results": 2,
+    "skip_counts_as_presented": true,
+    "first_question_sets": [
+      {
+        "id": "A",
+        "questions": [
+          "T01",
+          "B01",
+          "T07",
+          "B07",
+          "T13"
+        ]
+      },
+      {
+        "id": "B",
+        "questions": [
+          "T02",
+          "B02",
+          "T08",
+          "B12",
+          "T14"
+        ]
+      },
+      {
+        "id": "C",
+        "questions": [
+          "T03",
+          "B03",
+          "T09",
+          "B10",
+          "T15"
+        ]
+      },
+      {
+        "id": "D",
+        "questions": [
+          "T04",
+          "B04",
+          "T10",
+          "B16",
+          "T16"
+        ]
+      },
+      {
+        "id": "E",
+        "questions": [
+          "T05",
+          "B05",
+          "T11",
+          "B08",
+          "T17"
+        ]
+      },
+      {
+        "id": "F",
+        "questions": [
+          "T06",
+          "B06",
+          "T12",
+          "B17",
+          "T18"
+        ]
+      }
+    ],
+    "continuation_priority": [
+      "T01",
+      "B01",
+      "T02",
+      "B02",
+      "T03",
+      "B03",
+      "T04",
+      "B04",
+      "T05",
+      "B05",
+      "T06",
+      "B06",
+      "T07",
+      "B07",
+      "T08",
+      "B08",
+      "T09",
+      "B09",
+      "T10",
+      "B10",
+      "T11",
+      "B11",
+      "T12",
+      "B12",
+      "T13",
+      "B13",
+      "T14",
+      "B14",
+      "T15",
+      "B15",
+      "T16",
+      "B16",
+      "T17",
+      "B17",
+      "T18",
+      "B18"
+    ],
+    "continuation_selection": {
+      "method": "remaining_top_spread",
+      "top_candidates": 3,
+      "channel_order": [
+        "taste",
+        "behavior"
+      ],
+      "prefer_new_family": true
+    }
+  },
+  "copy_draft": {
+    "taste": "今読みたいのは、このあたりでは？",
+    "behavior": "その選び方なら、このやり取りは好きかもしれません。",
+    "favorite": "{character}の活躍が見たい？では、こちらなどいかがでしょう",
+    "exploration": "少し方向を変えて、こちらは？",
+    "no_evidence": "では、まずこちらから。",
+    "decline_button": "いいえ",
+    "exhaustion": "手札は全部出しました。",
+    "complete": "制覇おめでとう！　公開{total}作品をご案内しました。",
+    "final": "そんなものないから読みたい作品をDMしなさい",
+    "behavior_by_feature": {
+      "curiosity": "仕組みや理由が気になるなら、このやり取りも面白がれるかもしれません。",
+      "conviction": "自分が納得できる線を持ちたい。その選び方から、この話はどうでしょう。",
+      "bargaining": "条件を変えて道を探す。その選び方なら、このやり取りはどうでしょう。",
+      "care": "相手のことを考えて選んだなら、この関係も気になるかもしれません。",
+      "practicality": "手間や使い道が先に浮かぶなら、このやり取りはどうでしょう。",
+      "caution": "言い切る前に確かめたい。その選び方から、この話を薦めます。"
+    }
+  },
+  "questions": [
+    {
+      "id": "T01",
+      "channel": "taste",
+      "family": "scene",
+      "text": "偶然、妙な集まりに出くわした。少し見物するなら？",
+      "options": [
+        {
+          "id": "a",
+          "text": "世間話のはずなのに、誰かがずっと余計なことを言っている。",
+          "weights": {
+            "banter": 2,
+            "warmth": 1
+          }
+        },
+        {
+          "id": "b",
+          "text": "丁寧な会話なのに、全員が何かを隠していそう。",
+          "weights": {
+            "schemes": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "見たことのない技を、平然と使っている人がいる。",
+          "weights": {
+            "craft": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "話し合いは決裂したらしい。いま、逃げ道も塞がれた。",
+          "weights": {
+            "schemes": 1,
+            "action": 2
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T02",
+      "channel": "taste",
+      "family": "admiration",
+      "text": "登場人物の株が上がるのは、どんな瞬間？",
+      "options": [
+        {
+          "id": "a",
+          "text": "誰も見ていないところで、相手のために一手間かけていた。",
+          "weights": {
+            "warmth": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "何でもない動きに、長年の腕前が表れていた。",
+          "weights": {
+            "craft": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "自分でも割り切れていないのに、引き受けると決めた。",
+          "weights": {
+            "warmth": 1,
+            "reflection": 2
+          }
+        },
+        {
+          "id": "d",
+          "text": "困った状況で、その返しができるのかと笑ってしまった。",
+          "weights": {
+            "banter": 2,
+            "schemes": 1
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T03",
+      "channel": "taste",
+      "family": "suspense",
+      "text": "続きを知りたくなるのは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "その約束、どちらも同じ意味で受け取ってはいなさそう。",
+          "weights": {
+            "schemes": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "正しいことをしたはずなのに、誰もすっきりしていない。",
+          "weights": {
+            "reflection": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "もう策はない。と思ったところで、まだ何か始めるつもりらしい。",
+          "weights": {
+            "craft": 1,
+            "action": 2
+          }
+        },
+        {
+          "id": "d",
+          "text": "帰り際、一人がまだ何か言いたそうにしている。",
+          "weights": {
+            "warmth": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T04",
+      "channel": "taste",
+      "family": "relationship",
+      "text": "二人の間にあると、気になるものは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "片方だけが知っている技。もう片方は、盗んで覚える気でいる。",
+          "weights": {
+            "schemes": 1,
+            "craft": 2
+          }
+        },
+        {
+          "id": "b",
+          "text": "遠慮のない軽口。言われた方も、きっちり言い返す。",
+          "weights": {
+            "banter": 2,
+            "warmth": 1
+          }
+        },
+        {
+          "id": "c",
+          "text": "別に用事はないけれど、もう少し一緒にいたい時間。",
+          "weights": {
+            "warmth": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "話は通じるのに、互いに譲れないところが違う。",
+          "weights": {
+            "values": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T05",
+      "channel": "taste",
+      "family": "obstacle",
+      "text": "主人公に厄介ごとを一つ渡すなら？",
+      "options": [
+        {
+          "id": "a",
+          "text": "正面も退路も危険。とにかく今、切り抜けないといけない。",
+          "weights": {
+            "schemes": 1,
+            "action": 2
+          }
+        },
+        {
+          "id": "b",
+          "text": "いつもの道具が使えない。でも、使えるものは残っている。",
+          "weights": {
+            "craft": 2,
+            "action": 1
+          }
+        },
+        {
+          "id": "c",
+          "text": "頼みを断ったつもりが、別の条件で話を続けられている。",
+          "weights": {
+            "banter": 1,
+            "schemes": 2
+          }
+        },
+        {
+          "id": "d",
+          "text": "全員大まじめなのに、少しずつ話が噛み合っていない。",
+          "weights": {
+            "banter": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T06",
+      "channel": "taste",
+      "family": "payoff",
+      "text": "読み終わる前に、ひとつご褒美があるなら？",
+      "options": [
+        {
+          "id": "a",
+          "text": "最初にはなかった、小さな親しさが残る。",
+          "weights": {
+            "warmth": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "積み上げたものを、最後の見せ場で一気に使い切る。",
+          "weights": {
+            "craft": 1,
+            "action": 2
+          }
+        },
+        {
+          "id": "c",
+          "text": "結論が出ても、まだ少し考えたくなる余地がある。",
+          "weights": {
+            "reflection": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "勝ったと思った側が、もう一枚上手にやられる。",
+          "weights": {
+            "banter": 1,
+            "schemes": 2
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T07",
+      "channel": "taste",
+      "family": "museum_label",
+      "text": "小さな展示室。次の展示なら、説明の続きを読みたいのは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "ただの器に見えるが、同じものを作れる職人はもういない。",
+          "weights": {
+            "craft": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "品物は変わっていないのに、説明札の一語が変わると別の出来事に見えてくる。",
+          "weights": {
+            "reflection": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "修復すれば元どおりになる。それでも持ち主は、その修復だけは認めない。",
+          "weights": {
+            "values": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "立派な来歴の説明に、隣の札からいちいち訂正が入っている。",
+          "weights": {
+            "banter": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T08",
+      "channel": "taste",
+      "family": "guest_gift",
+      "text": "客人が手土産を出した。さて、どんな一幕を見たい？",
+      "options": [
+        {
+          "id": "a",
+          "text": "「つまらないものですが」に、本当に遠慮のない返事が返ってくる。",
+          "weights": {
+            "banter": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "品物は欲しい。でも、この渡され方では受け取れないという。",
+          "weights": {
+            "values": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "受け取ったら断りにくくなる頼みごとが、あとから出てくる。",
+          "weights": {
+            "schemes": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "一度しか話していない好物を、ちゃんと覚えていてくれた。",
+          "weights": {
+            "warmth": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T09",
+      "channel": "taste",
+      "family": "repair_shop",
+      "text": "閉店間際の修理屋。店じまいを少し見届けるなら？",
+      "options": [
+        {
+          "id": "a",
+          "text": "廃品にしか見えない部品が、見事に別の道具へ生まれ変わっていく。",
+          "weights": {
+            "craft": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "「また壊したのか」と呆れながら、いつもの客のために明かりを戻す。",
+          "weights": {
+            "banter": 1,
+            "warmth": 2
+          }
+        },
+        {
+          "id": "c",
+          "text": "逃げ込んできた客を追って、戸が破られる。直しかけの道具で応戦が始まる。",
+          "weights": {
+            "craft": 1,
+            "action": 2
+          }
+        },
+        {
+          "id": "d",
+          "text": "便利に直すことと、その品を直すことは違うらしい。客と職人が手を止めて話し始める。",
+          "weights": {
+            "values": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T10",
+      "channel": "taste",
+      "family": "festival_interruption",
+      "text": "祭の囃子がぴたりと止まった。続きが気になるのは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "暴れ出した獣が人混みへ向かう。その前に一人が飛び出した。",
+          "weights": {
+            "action": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "誰かが合図を間違えたらしい。全員が別の人を指している。",
+          "weights": {
+            "banter": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "毎年同じところで止める。その理由を聞いたあとでは、さっきまでの音が違って感じられそう。",
+          "weights": {
+            "reflection": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "皆が楽しめれば成功だと言う人と、変えてはいけない手順があると言う人が向き合った。",
+          "weights": {
+            "values": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T11",
+      "channel": "taste",
+      "family": "crossed_out_letter",
+      "text": "書きかけの手紙に、一行だけ消した跡がある。気になる事情は？",
+      "options": [
+        {
+          "id": "a",
+          "text": "そこを消すだけで、書かれた出来事は同じなのに、誰のための行動だったか分からなくなる。",
+          "weights": {
+            "reflection": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "相手に先に返事をさせるため、肝心な条件だけは書かないことにした。",
+          "weights": {
+            "schemes": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "心配だと素直に書けず、余計な世話を焼くなという説教になってしまった。",
+          "weights": {
+            "banter": 1,
+            "warmth": 2
+          }
+        },
+        {
+          "id": "d",
+          "text": "きれいに収まる謝り方は分かる。でも、それを書くと認めたことにされる一線がある。",
+          "weights": {
+            "values": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T12",
+      "channel": "taste",
+      "family": "match_spectator",
+      "text": "勝負の観戦席に招待された。どの展開なら身を乗り出す？",
+      "options": [
+        {
+          "id": "a",
+          "text": "何度も防がれた技が、仲間の一手と重なった瞬間に相手へ届く。",
+          "weights": {
+            "craft": 1,
+            "action": 2
+          }
+        },
+        {
+          "id": "b",
+          "text": "さっき交わした何気ない約束が、相手の次の一手を封じていた。",
+          "weights": {
+            "schemes": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "気楽に解説していた人まで巻き込まれ、急に実況が恨み言になる。",
+          "weights": {
+            "banter": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "勝つ手は残っている。それを使った勝ちなら要らない、と言う側の理屈を聞きたい。",
+          "weights": {
+            "values": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T13",
+      "channel": "taste",
+      "family": "dinner_table",
+      "text": "食卓にもう一皿だけ運ばれてくる。こんな話の食卓なら覗いてみたい。",
+      "options": [
+        {
+          "id": "a",
+          "text": "誰が言い出すでもなく、遅れて来る人の分が取り分けられている。",
+          "weights": {
+            "warmth": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "最後の一口を譲り合う会話が、だんだん相手に食べさせる勝負になっていく。",
+          "weights": {
+            "banter": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "料理を褒めることと、全部平らげること。その二つを同じ礼儀とは考えない人がいる。",
+          "weights": {
+            "values": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "いつもと同じ味なのに、「前とは違う」と言った人の理由だけが語られない。",
+          "weights": {
+            "reflection": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T14",
+      "channel": "taste",
+      "family": "journey_detour",
+      "text": "旅人二人が予定にない寄り道をした。どんな寄り道の話を聞こう？",
+      "options": [
+        {
+          "id": "a",
+          "text": "壊れた橋を渡るため、荷物の中身を思いがけない組み合わせで使った。",
+          "weights": {
+            "craft": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "追手を振り切るまで、川も崖も止まる理由にならなかった。",
+          "weights": {
+            "action": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "あそこで引き返したのは、臆病だったのか賢明だったのか。帰り着いても答えは出ない。",
+          "weights": {
+            "reflection": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "目的地に着けばよいという相棒と、景色を見ずに通り過ぎるなら旅ではないという人。",
+          "weights": {
+            "values": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T15",
+      "channel": "taste",
+      "family": "rumor_versions",
+      "text": "同じ出来事の噂が、町を一周して戻ってきた。面白そうなのは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "最初はただの忘れ物だったのに、当人が聞いている前で大冒険に育っている。",
+          "weights": {
+            "banter": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "噂を信じた人が動くところまで、最初に話した人の計算だった。",
+          "weights": {
+            "schemes": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "誰も嘘は言っていない。それでも、どの人の話を先に聞くかで人物像が変わる。",
+          "weights": {
+            "reflection": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "悪口ばかり言っていた人が、実はずっと面倒を見ていたと分かる。",
+          "weights": {
+            "warmth": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T16",
+      "channel": "taste",
+      "family": "opened_door",
+      "text": "開かずの扉が、ついに開いた。中身のほかに見ていたいのは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "手元にあった小さな道具だけで、複雑な仕掛けをほどいていく手つき。",
+          "weights": {
+            "craft": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "開け方を知らないふりで、相手に先に手を出させていた人の顔。",
+          "weights": {
+            "schemes": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "入れるなら入ってよいという仲間に、扉が開いても許されたわけではないと返す人。",
+          "weights": {
+            "values": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "中身を見に行くより先に、遅れている連れを迎えに戻る人。",
+          "weights": {
+            "warmth": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T17",
+      "channel": "taste",
+      "family": "lost_property",
+      "text": "落とし物一つで、こんな騒動になった。詳しく聞きたいのは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "代わりの品を返せば済むと言う人と、同じ物が戻らなければ返したことにならないと言う人の話。",
+          "weights": {
+            "values": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "持ち主の説明が妙すぎて、全員が別の物を探し始めた話。",
+          "weights": {
+            "banter": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "届けるだけだったはずが、荷物を狙う連中を振り切る逃走劇になった話。",
+          "weights": {
+            "action": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "品物は持ち主へ返ったのに、それでよかったのか、届けた人にはまだ分からない話。",
+          "weights": {
+            "reflection": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "T18",
+      "channel": "taste",
+      "family": "after_the_commotion",
+      "text": "ひと騒動が終わった。最後にもう少し見ていたいのは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "前なら別々に帰っていた二人が、自然に並んで歩き出すところ。",
+          "weights": {
+            "warmth": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "大仕事をやり遂げた人が、最後の小さな失敗を仲間に延々とからかわれるところ。",
+          "weights": {
+            "banter": 2,
+            "warmth": 1
+          }
+        },
+        {
+          "id": "c",
+          "text": "皆には褒められている人が、自分のしたことをまだ受け止めきれずにいるところ。",
+          "weights": {
+            "reflection": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "見せ場を支えていた仕掛けを片付けながら、作り手が工夫を明かすところ。",
+          "weights": {
+            "craft": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B01",
+      "channel": "behavior",
+      "family": "tool",
+      "text": "「必ず魚が釣れる竿」を一日借りられる。まず気になるのは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "どういう仕組み？　魚が寄ってくるのか、絶対に逃がさないのか。",
+          "weights": {
+            "curiosity": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "何匹まで持って帰れるだろう。先に入れ物を用意したい。",
+          "weights": {
+            "practicality": 2,
+            "caution": 1
+          }
+        },
+        {
+          "id": "c",
+          "text": "普通の竿でもいい。釣れない時間にも楽しみはある。",
+          "weights": {
+            "conviction": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "借りる代わりに、こちらは何をしたらいい？",
+          "weights": {
+            "bargaining": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B02",
+      "channel": "behavior",
+      "family": "request",
+      "text": "用事を終えて帰ろうとしたら、「もう一つ頼める？」と呼び止められた。",
+      "options": [
+        {
+          "id": "a",
+          "text": "何をするの？　面白そうなら、少しくらい寄り道してもいい。",
+          "weights": {
+            "curiosity": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "どのくらいかかる？　できるかどうかは、話を聞いてから。",
+          "weights": {
+            "practicality": 1,
+            "caution": 2
+          }
+        },
+        {
+          "id": "c",
+          "text": "その代わり、こちらの頼みも一つ聞いてもらえる？",
+          "weights": {
+            "bargaining": 2,
+            "practicality": 1
+          }
+        },
+        {
+          "id": "d",
+          "text": "この人には世話になった。予定に響かない範囲なら手伝いたい。",
+          "weights": {
+            "care": 2,
+            "practicality": 1
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B03",
+      "channel": "behavior",
+      "family": "claim",
+      "text": "友人が「この店には、絶対に見つからない隠し部屋がある」と言ってきた。",
+      "options": [
+        {
+          "id": "a",
+          "text": "絶対に見つからないなら、どうしてあると分かったの？",
+          "weights": {
+            "curiosity": 1,
+            "caution": 2
+          }
+        },
+        {
+          "id": "b",
+          "text": "ずいぶん楽しそうに話すなあ。何があったのか聞いてみたい。",
+          "weights": {
+            "curiosity": 1,
+            "care": 2
+          }
+        },
+        {
+          "id": "c",
+          "text": "そこに入ると、何かいいことがある？",
+          "weights": {
+            "practicality": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "本当でも、店の人が入ってほしくない場所なら入らない。",
+          "weights": {
+            "conviction": 2,
+            "care": 1
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B04",
+      "channel": "behavior",
+      "family": "disposal",
+      "text": "片付け中、用途不明の古い箱が出てきた。どうする？",
+      "options": [
+        {
+          "id": "a",
+          "text": "自分が気に入っているなら残す。使い道は後からでもいい。",
+          "weights": {
+            "conviction": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "使える場所があるか考える。なければ、片付けを進めたい。",
+          "weights": {
+            "practicality": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "誰のものだったかな。処分する前に、その人に聞いておきたい。",
+          "weights": {
+            "care": 2,
+            "caution": 1
+          }
+        },
+        {
+          "id": "d",
+          "text": "なぜこんな形なんだろう。ひとまず、よく調べたい。",
+          "weights": {
+            "curiosity": 2,
+            "caution": 1
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B05",
+      "channel": "behavior",
+      "family": "disagreement",
+      "text": "一緒に出かける相手と、行き先の希望が合わない。",
+      "options": [
+        {
+          "id": "a",
+          "text": "どちらの目的も叶うように、順番や待ち合わせ場所を変えてみる。",
+          "weights": {
+            "bargaining": 2,
+            "care": 1
+          }
+        },
+        {
+          "id": "b",
+          "text": "ここだけは譲れない、と伝える。そのほかなら合わせられる。",
+          "weights": {
+            "conviction": 2,
+            "bargaining": 1
+          }
+        },
+        {
+          "id": "c",
+          "text": "相手は、その場所の何を楽しみにしているんだろう。先に聞く。",
+          "weights": {
+            "care": 1,
+            "caution": 2
+          }
+        },
+        {
+          "id": "d",
+          "text": "移動時間と費用を比べて、無理の少ない方にしたい。",
+          "weights": {
+            "practicality": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B06",
+      "channel": "behavior",
+      "family": "detour",
+      "text": "帰り道、同行者が地図にない脇道を見つけた。少し先が見えない。",
+      "options": [
+        {
+          "id": "a",
+          "text": "疲れている人はいない？　全員が大丈夫なら付き合う。",
+          "weights": {
+            "care": 2,
+            "practicality": 1
+          }
+        },
+        {
+          "id": "b",
+          "text": "どこに出るんだろう。入口の様子を確かめてみたい。",
+          "weights": {
+            "curiosity": 2,
+            "caution": 1
+          }
+        },
+        {
+          "id": "c",
+          "text": "少しだけ見て戻る、ならどう？　引き返す時間を決めておく。",
+          "weights": {
+            "bargaining": 2,
+            "caution": 1
+          }
+        },
+        {
+          "id": "d",
+          "text": "通ってよい道なのか、まず地図や看板で確認したい。",
+          "weights": {
+            "caution": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B07",
+      "channel": "behavior",
+      "family": "special-seat",
+      "text": "宴会で、あなたの席だけ「今夜の主役」と書かれていた。まずどうする？",
+      "options": [
+        {
+          "id": "a",
+          "text": "主役をやりたい人はいないかな。いたら席を交換したい。",
+          "weights": {
+            "bargaining": 1,
+            "care": 2
+          }
+        },
+        {
+          "id": "b",
+          "text": "今日はのんびり話したい。普通の席でもいいか聞いてみる。",
+          "weights": {
+            "conviction": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "何が始まるんだろう。ひとまず座って、周りの反応を見たい。",
+          "weights": {
+            "curiosity": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "座ると何をすることになるのかな。先に決まりを聞いておきたい。",
+          "weights": {
+            "caution": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B08",
+      "channel": "behavior",
+      "family": "festival-plan",
+      "text": "小さな祭りの相談に来た。「今年の目玉、何にする？」と聞かれたら？",
+      "options": [
+        {
+          "id": "a",
+          "text": "自分がずっとやってみたかった出し物がある。今年こそ提案する。",
+          "weights": {
+            "conviction": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "去年の出し物は、何がうまくいって何が大変だった？　まず振り返りたい。",
+          "weights": {
+            "practicality": 1,
+            "caution": 2
+          }
+        },
+        {
+          "id": "c",
+          "text": "隣の店と組めないかな。片方で買うと、もう片方で何か起きるとか。",
+          "weights": {
+            "bargaining": 2,
+            "care": 1
+          }
+        },
+        {
+          "id": "d",
+          "text": "来る人は何を楽しみにしているんだろう。何人かに聞いてみたい。",
+          "weights": {
+            "curiosity": 1,
+            "care": 2
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B09",
+      "channel": "behavior",
+      "family": "famous-quote",
+      "text": "昨日の集まりの記録を見せられた。あなたの冗談が、立派な名言として載っている。",
+      "options": [
+        {
+          "id": "a",
+          "text": "言いたかったこととは違う。自分の言葉として載るなら、少し直したい。",
+          "weights": {
+            "conviction": 2,
+            "caution": 1
+          }
+        },
+        {
+          "id": "b",
+          "text": "そのまま残してもいいので、「宴会での冗談です」と一言添えてもらう。",
+          "weights": {
+            "bargaining": 2,
+            "practicality": 1
+          }
+        },
+        {
+          "id": "c",
+          "text": "その場にいた人も、同じ意味に受け取ったのかな。まず聞いてみたい。",
+          "weights": {
+            "care": 1,
+            "caution": 2
+          }
+        },
+        {
+          "id": "d",
+          "text": "どうしてそこを選んだんだろう。書いた人の話を聞いてみたい。",
+          "weights": {
+            "curiosity": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B10",
+      "channel": "behavior",
+      "family": "exchange-meet",
+      "text": "物々交換会に来た。持ってきた品は人気だが、これと交換したい品がまだ見つからない。",
+      "options": [
+        {
+          "id": "a",
+          "text": "品物ではなく、後日何かを手伝ってもらう約束と交換できないかな。",
+          "weights": {
+            "bargaining": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "あの妙な形の品は何だろう。まずは持ち主に使い方を聞いてみる。",
+          "weights": {
+            "curiosity": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "長く使ってくれそうな人に渡したい。使う予定を聞いてから考える。",
+          "weights": {
+            "care": 2,
+            "caution": 1
+          }
+        },
+        {
+          "id": "d",
+          "text": "今日は持ち帰ってもいい。使う予定のない品を増やすのも大変だ。",
+          "weights": {
+            "practicality": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B11",
+      "channel": "behavior",
+      "family": "stage-line",
+      "text": "芝居の最後は「全部、私の計算通りだ！」。ただし、その役は直前まで寝ていた。練習中に相談されたら？",
+      "options": [
+        {
+          "id": "a",
+          "text": "演じる人はどう言いたい？　しっくりくる言い方があるか一緒に試したい。",
+          "weights": {
+            "care": 2,
+            "caution": 1
+          }
+        },
+        {
+          "id": "b",
+          "text": "台詞を残すなら、前の場面を一つ変えてつじつまを合わせてはどうかな。",
+          "weights": {
+            "bargaining": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "寝ていたのも計算のうち？　どこまで本気の台詞なのか聞いてみたい。",
+          "weights": {
+            "curiosity": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "寝ていた人が言い切るところが好きだ。そのまま押し通してほしい。",
+          "weights": {
+            "conviction": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B12",
+      "channel": "behavior",
+      "family": "rule-making",
+      "text": "「負けた人が次のルールを一つ足せる」という遊びで、三連敗した。今度は何を足す？",
+      "options": [
+        {
+          "id": "a",
+          "text": "一回だけ二人組で相談できるようにする。ほかの人のやり方も聞けそう。",
+          "weights": {
+            "curiosity": 1,
+            "care": 2
+          }
+        },
+        {
+          "id": "b",
+          "text": "得意な動きを使える機会を一つ増やす。次こそ、あれで勝ちたい。",
+          "weights": {
+            "conviction": 2,
+            "practicality": 1
+          }
+        },
+        {
+          "id": "c",
+          "text": "次は相手と道具を交換して勝負する。得意不得意がひっくり返るかもしれない。",
+          "weights": {
+            "bargaining": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "追加ルールは一回だけお試しにする。不都合がないか見てから正式採用したい。",
+          "weights": {
+            "caution": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B13",
+      "channel": "behavior",
+      "family": "shop-counter",
+      "text": "小さな店の留守番中。お客が、棚にない品を注文してきた。まずどうする？",
+      "options": [
+        {
+          "id": "a",
+          "text": "後日の受け取りでもよければ、店主に相談する約束で注文を預かれないかな。",
+          "weights": {
+            "bargaining": 2,
+            "caution": 1
+          }
+        },
+        {
+          "id": "b",
+          "text": "名前の聞き違いかもしれない。どんな品なのか、もう少し詳しく聞く。",
+          "weights": {
+            "caution": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "用途が同じで、今すぐ渡せる品がないか探す。",
+          "weights": {
+            "practicality": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "店主と決めた範囲では扱えない注文だ。帰ってくる時刻を案内する。",
+          "weights": {
+            "conviction": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B14",
+      "channel": "behavior",
+      "family": "exhibit-title",
+      "text": "友人の不思議な置物を、小さな展示会に出すことになった。「題名は任せる」と言われたら？",
+      "options": [
+        {
+          "id": "a",
+          "text": "会場で呼びやすく、ほかの作品と間違えない短い名前を考える。",
+          "weights": {
+            "practicality": 2,
+            "caution": 1
+          }
+        },
+        {
+          "id": "b",
+          "text": "友人がよく口にする言葉から選びたい。その人らしい題名になりそう。",
+          "weights": {
+            "care": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "見た瞬間に浮かんだ名前がある。理由も添えて、その案を出す。",
+          "weights": {
+            "conviction": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "まず、何を考えて作ったのか聞きたい。題名の種が見つかりそう。",
+          "weights": {
+            "curiosity": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B15",
+      "channel": "behavior",
+      "family": "group-photo",
+      "text": "集まりの記念写真を見たら、一人だけ見事な変顔だった。もう一枚撮る時間はある。",
+      "options": [
+        {
+          "id": "a",
+          "text": "この瞬間が好きだ。もう一枚撮るとしても、こちらも残しておきたい。",
+          "weights": {
+            "conviction": 2,
+            "care": 1
+          }
+        },
+        {
+          "id": "b",
+          "text": "せっかくだから、もう一枚撮っておく。後で好きな方を選べるようにする。",
+          "weights": {
+            "practicality": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "本人は狙ってやったのかな。まず、この写真を見せてみたい。",
+          "weights": {
+            "care": 1,
+            "caution": 2
+          }
+        },
+        {
+          "id": "d",
+          "text": "次は全員で変顔にしてはどうだろう。そういう記念写真も一枚ほしい。",
+          "weights": {
+            "bargaining": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B16",
+      "channel": "behavior",
+      "family": "yesterdays-letter",
+      "text": "郵便屋の手伝い中、「昨日の私へ」と宛てられた手紙を預かった。まず気になるのは？",
+      "options": [
+        {
+          "id": "a",
+          "text": "宛名の書き間違いか、それとも決まった届け方があるのか。",
+          "weights": {
+            "caution": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "昨日に届く方法が、この町にはあるのだろうか。",
+          "weights": {
+            "curiosity": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "差出人は、昨日の自分に何を伝えたかったのだろう。",
+          "weights": {
+            "care": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "昨日には無理でも、今日の本人に届けば用が足りるだろうか。",
+          "weights": {
+            "bargaining": 2,
+            "practicality": 1
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B17",
+      "channel": "behavior",
+      "family": "garden-border",
+      "text": "庭に石を並べたら、妖精たちが「ここから先は我々の国だ」と言い始めた。どうしよう？",
+      "options": [
+        {
+          "id": "a",
+          "text": "石を一つ動かせば脇を通れそうだ。出入口を足して、作業を進める。",
+          "weights": {
+            "practicality": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "それなら通行証を発行してもらえないかな。庭仕事ができる条件を相談する。",
+          "weights": {
+            "bargaining": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "遊ぶのはいいが、庭仕事は続けたい。ここは通る、と先に伝える。",
+          "weights": {
+            "conviction": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "どんな国にしたいんだろう。遊びの続きを聞いてから、庭の使い方を考える。",
+          "weights": {
+            "curiosity": 1,
+            "care": 2
+          }
+        }
+      ],
+      "allow_skip": true
+    },
+    {
+      "id": "B18",
+      "channel": "behavior",
+      "family": "future-message",
+      "text": "百年後に開く寄せ書きに、一行だけ書けることになった。何を残したい？",
+      "options": [
+        {
+          "id": "a",
+          "text": "百年経てば答えが出ていそうな疑問。未来の人は、もう知っているかな。",
+          "weights": {
+            "curiosity": 3
+          }
+        },
+        {
+          "id": "b",
+          "text": "読む人がどんな人でも受け取れそうな、短い挨拶。",
+          "weights": {
+            "care": 3
+          }
+        },
+        {
+          "id": "c",
+          "text": "今の自分が、これだけは忘れたくないと思っていること。",
+          "weights": {
+            "conviction": 3
+          }
+        },
+        {
+          "id": "d",
+          "text": "今日の暮らしが分かる記録。何を買って、いくら払ったかなど。",
+          "weights": {
+            "practicality": 3
+          }
+        }
+      ],
+      "allow_skip": true
+    }
+  ],
+  "works": [
+    {
+      "id": "01",
+      "title": "冴ゆる風雅に秘めた俗情",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29350438",
+      "author_caption": "ワカサギ釣りに来た霍青娥は、湖上で摩多羅隠岐奈と出会う。\n舞と里乃も加わる釣りのひととき、青娥は隠岐奈の言葉や手つきに目を留めていく。",
+      "taste": {
+        "banter": 3,
+        "schemes": 2,
+        "craft": 4,
+        "action": 0,
+        "warmth": 2,
+        "reflection": 0,
+        "values": 1
+      },
+      "light_entry": 3,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 1,
+            "practicality": 0,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "okina",
+          "name": "摩多羅隠岐奈",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 2,
+            "practicality": 0,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "mai",
+          "name": "丁礼田舞",
+          "role": "support",
+          "behavior": null,
+          "favorite_eligible": true
+        },
+        {
+          "id": "satono",
+          "name": "爾子田里乃",
+          "role": "support",
+          "behavior": null,
+          "favorite_eligible": true
+        },
+        {
+          "id": "yoshika",
+          "name": "宮古芳香",
+          "role": "indirect",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "02",
+      "title": "一寸先の彼岸",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29350525",
+      "author_caption": "三途の川で何かを試す霍青娥と、渡し舟からそれを眺める小野塚小町。\n世間話を交わしながら、二人の船着き場で静かな駆け引きが始まる。",
+      "taste": {
+        "banter": 2,
+        "schemes": 3,
+        "craft": 4,
+        "action": 0,
+        "warmth": 0,
+        "reflection": 0,
+        "values": 1
+      },
+      "light_entry": 3,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "komachi",
+          "name": "小野塚小町",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 0,
+            "bargaining": 1,
+            "care": 0,
+            "practicality": 2,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "eiki",
+          "name": "四季映姫・ヤマザナドゥ",
+          "role": "support",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "03",
+      "title": "灰にするのも、私の勝手",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29350594",
+      "author_caption": "焼きかけの死体を拾った火焔猫燐は、それを燃やしていた霍青娥に出会う。\n死体を運んで欲しいと青娥に頼まれ、燐は訝しみつつ地の火まで運ぶことになる。",
+      "taste": {
+        "banter": 1,
+        "schemes": 0,
+        "craft": 0,
+        "action": 0,
+        "warmth": 0,
+        "reflection": 4,
+        "values": 4
+      },
+      "light_entry": 0,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 2,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "orin",
+          "name": "火焔猫燐",
+          "role": "main",
+          "behavior": {
+            "curiosity": 1,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 2,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "04",
+      "title": "一篇を書いた跡には",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29350751",
+      "author_caption": "霍青娥が少女を救う場面を目撃した射命丸文は、草稿と写真を持って豊聡耳神子を訪ねる。\n神子の指摘を受け、文は\"見たこと\"そして\"見てなかったこと\"を知ることになる。",
+      "taste": {
+        "banter": 2,
+        "schemes": 0,
+        "craft": 0,
+        "action": 0,
+        "warmth": 0,
+        "reflection": 4,
+        "values": 2
+      },
+      "light_entry": 1,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "aya",
+          "name": "射命丸文",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 0,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "miko",
+          "name": "豊聡耳神子",
+          "role": "main",
+          "behavior": {
+            "curiosity": 1,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 0,
+            "caution": 2
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "indirect",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "05",
+      "title": "この先、おひとり様につき",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29350860",
+      "author_caption": "霍青娥と鬼人正邪は、鬼傑組の蔵からとある秘宝を盗み出す。\n正邪の裏切りをきっかけに、その持ち主である吉弔八千慧も交えた奪い合いが始まる。",
+      "taste": {
+        "banter": 1,
+        "schemes": 4,
+        "craft": 3,
+        "action": 4,
+        "warmth": 0,
+        "reflection": 0,
+        "values": 1
+      },
+      "light_entry": 0,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 0,
+            "bargaining": 2,
+            "care": 0,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "seija",
+          "name": "鬼人正邪",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 1,
+            "bargaining": 1,
+            "care": 0,
+            "practicality": 2,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "yachie",
+          "name": "吉弔八千慧",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 0,
+            "bargaining": 2,
+            "care": 0,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "06",
+      "title": "仙人降りて天下の秋を知る",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29380205",
+      "author_caption": "魔理沙に本を返しに来たアリスは、そのまま研究の相談を始める。\n霍青娥も立ち話に加わる中、アリスは魔理沙に思うところがあるようだが...",
+      "taste": {
+        "banter": 3,
+        "schemes": 0,
+        "craft": 2,
+        "action": 0,
+        "warmth": 4,
+        "reflection": 0,
+        "values": 2
+      },
+      "light_entry": 4,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "alice",
+          "name": "アリス・マーガトロイド",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 2,
+            "practicality": 0,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "marisa",
+          "name": "霧雨魔理沙",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 1,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "support",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 0,
+            "bargaining": 1,
+            "care": 0,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "yoshika",
+          "name": "宮古芳香",
+          "role": "indirect",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "07",
+      "title": "月の王子さま",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29394378",
+      "author_caption": "竹の花の噂を聞き、竹林を訪れた霍青娥。探索中、不意に声がして屋敷へ招かれる。\n帳の向こうから訪問の理由等を尋ねられ、青娥も相手に問いを返していく。",
+      "taste": {
+        "banter": 2,
+        "schemes": 4,
+        "craft": 0,
+        "action": 0,
+        "warmth": 0,
+        "reflection": 0,
+        "values": 4
+      },
+      "light_entry": 2,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 1,
+            "conviction": 2,
+            "bargaining": 1,
+            "care": 0,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "kaguya",
+          "name": "蓬莱山輝夜",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 1,
+            "bargaining": 1,
+            "care": 0,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "08",
+      "title": "こちらの席は貴方へ",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29405117",
+      "author_caption": "狸たちの騒ぎを収めに廃寺を訪れた博麗霊夢は、霍青娥と二ッ岩マミゾウに出会う。\n話を聞くうちに、寺に残る\"噂の影響を受ける怪異\"へ話題が移っていく。",
+      "taste": {
+        "banter": 3,
+        "schemes": 3,
+        "craft": 0,
+        "action": 0,
+        "warmth": 2,
+        "reflection": 3,
+        "values": 3
+      },
+      "light_entry": 1,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "reimu",
+          "name": "博麗霊夢",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 1,
+            "bargaining": 1,
+            "care": 0,
+            "practicality": 2,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "mamizou",
+          "name": "二ッ岩マミゾウ",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 1,
+            "bargaining": 0,
+            "care": 2,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 0,
+            "bargaining": 2,
+            "care": 0,
+            "practicality": 2,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "09",
+      "title": "糸口は逃げ道に通ず",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29410080",
+      "author_caption": "取水口の点検に向かう河城にとりは、山中で釣りをする霍青娥に呼び止められる。\n早く立ち去りたいにとりは、あの手この手で、その場を切り抜けようとする。",
+      "taste": {
+        "banter": 4,
+        "schemes": 2,
+        "craft": 3,
+        "action": 0,
+        "warmth": 0,
+        "reflection": 0,
+        "values": 3
+      },
+      "light_entry": 4,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "nitori",
+          "name": "河城にとり",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 0,
+            "bargaining": 1,
+            "care": 0,
+            "practicality": 2,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 1,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "sena",
+          "name": "瀬名",
+          "role": "support",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "10",
+      "title": "道が征くを想えば",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29436579",
+      "author_caption": "聖白蓮が神霊廟を訪れる。穏やかな佇まいのまま豊聡耳神子へ襲いかかる彼女に、布都たちも応戦する。\n神子は仲間を守りながら、見知ったはずの相手を止めようとする。",
+      "taste": {
+        "banter": 0,
+        "schemes": 2,
+        "craft": 3,
+        "action": 4,
+        "warmth": 0,
+        "reflection": 3,
+        "values": 4
+      },
+      "light_entry": 0,
+      "entry_penalty": 12,
+      "characters": [
+        {
+          "id": "miko",
+          "name": "豊聡耳神子",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 2,
+            "bargaining": 0,
+            "care": 2,
+            "practicality": 0,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "futo",
+          "name": "物部布都",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 1,
+            "bargaining": 0,
+            "care": 1,
+            "practicality": 2,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "byakuren",
+          "name": "聖白蓮",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 2,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "support",
+          "behavior": {
+            "curiosity": 1,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 2,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "tojiko",
+          "name": "蘇我屠自古",
+          "role": "support",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 1,
+            "bargaining": 0,
+            "care": 1,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "yoshika",
+          "name": "宮古芳香",
+          "role": "support",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
+    }
+  ]
+}
