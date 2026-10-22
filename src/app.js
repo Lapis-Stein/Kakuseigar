@@ -129,7 +129,8 @@ function welcome() {
     el('div', { className: 'intro-meta' }, el('span', {}, `まずは${data.rules.first_normal_result_after}問、時々寄り道`), el('span', {}, '気になる答えを選ぶだけ'))];
   if (!data.works.length) content.push(el('p', { className: 'empty-state' }, 'ただいま、お話の案内を準備しています。'));
   else if (session.state.started) {
-    content.push(button('続きからお話しする →', () => go(activeRoute())), button('最初から遊ぶ', reset, 'text-button'));
+    content.push(el('div', { className: 'button-row' },
+      button('続きからお話しする →', () => go(activeRoute())), button('最初から遊ぶ', reset, 'text-button')));
   } else {
     const token = session.state.activeStepId;
     content.push(button('青娥に聞いてもらう →', () => action(t => session.start(t), token, { replace: false })));
@@ -228,11 +229,12 @@ function ending() {
 function about() {
   return stage('idle', 'お話との出会いを、\n少しだけお手伝いいたします。', [el('p', { className: 'eyebrow' }, 'ABOUT'), title('この案内について'),
     el('p', { className: 'lede' }, '質問への答えから、好みに合いそうな東方二次創作小説をご紹介する、小さな遊びです。'),
+    el('p', {}, '本アプリは、東方Projectの非公式の二次創作です。原作：東方Project（上海アリス幻樂団／ZUN）。'),
+    externalLink('東方Projectの二次創作ガイドライン', 'https://touhou-project.news/guideline/', 'text-button'),
     el('p', {}, 'あなたの人格や、似ているキャラクターを判定するものではありません。読みたい場面や、つい選んでしまう考え方から、お話の入口を探します。'),
     el('p', {}, '作品はpixivでお読みいただけます。「いいえ」で別のお話を探せますし、前に薦められた作品も紹介履歴から見返せます。'),
     el('p', { className: 'fine-print' }, '回答と進行はこのブラウザーのタブ内で扱い、アプリから外部へ送信しません。タブを閉じた後の再開は保証されません。外部リンクを開くと各サービスへ移動します。'),
-    data.author_x_url ? externalLink('作者のX', data.author_x_url, 'text-button') : null,
-    button('案内に戻る', () => go(activeRoute()), 'secondary-button')], 'about');
+    el('div', { className: 'button-row' }, button('案内に戻る', () => go(activeRoute()), 'secondary-button'))], 'about');
 }
 
 async function shareResult(work) {
@@ -335,9 +337,10 @@ async function load() {
   }
 }
 
-document.querySelectorAll('[data-action="history"]').forEach(b => b.addEventListener('click', () => session && openHistory()));
 document.querySelector('.skip-link')?.addEventListener('click', event => { event.preventDefault(); app.focus(); });
-document.querySelector('#footer')?.append(el('span', {}, 'Kakuseigar'), el('a', { href: '#/about' }, 'このサイトについて'),
+document.querySelector('#footer')?.append(el('span', {}, 'Kakuseigar'),
+  button('これまでのお薦め', () => session && openHistory(), 'text-button', { 'data-action': 'history', disabled: true }),
+  el('a', { href: '#/about' }, 'このサイトについて'),
   button('最初から遊ぶ', () => session && reset(), 'text-button'));
 window.addEventListener('hashchange', () => { try { render(); } catch { go(activeRoute(), true); } });
 window.addEventListener('popstate', () => { if (session) render(); });

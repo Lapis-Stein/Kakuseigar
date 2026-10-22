@@ -42,3 +42,7 @@
 キャンバスの大きさと顔の位置を揃え、腰から太もも上程度までを収める想定です。台詞・背景・画面部品は画像に描き込まない方が扱いやすくなります。スマホでは上端を基準にバストアップで切り取るため、下側の手などは画面に収まらない場合があります。
 
 `assets/og-card.svg` はサイト共通の紹介画像の編集元、`assets/og-card.png` は共有カード向けの配信用画像です。画像を変更した場合はPNGとHTMLの紹介情報も揃えてください。
+
+## プロフィールリンクのアイコン
+
+上部のX・pixivリンクには、[Simple Icons](https://github.com/simple-icons/simple-icons)の[X](https://github.com/simple-icons/simple-icons/blob/develop/icons/x.svg)・[pixiv](https://github.com/simple-icons/simple-icons/blob/develop/icons/pixiv.svg)を使っています。同ライブラリの[CC0 1.0 Universal](https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md)を確認し、SVGのパスを `index.html` に同梱しています。アイコンの取得のために外部サービスへ接続する処理はありません。

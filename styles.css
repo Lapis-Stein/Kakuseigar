@@ -55,12 +55,10 @@ h1[tabindex="-1"]:focus { outline: none; }
 .brand-copy { display: grid; gap: 1px; }
 .brand-name { font-family: Georgia, "Times New Roman", serif; font-size: 22px; font-weight: 400; letter-spacing: .035em; line-height: 1.25; }
 .brand-subtitle { color: var(--muted); font-size: 10px; letter-spacing: .17em; }
-.site-nav { flex: none; }
-.site-nav .text-button { font-size: 12px; letter-spacing: .045em; }
-.history-icon { display: inline-block; width: 14px; height: 15px; position: relative; border: 1px solid currentColor; border-radius: 1px; vertical-align: -2px; margin-right: 10px; }
-.history-icon::before, .history-icon::after { content: ""; position: absolute; height: 1px; background: currentColor; left: 3px; right: 3px; }
-.history-icon::before { top: 4px; }
-.history-icon::after { top: 8px; }
+.site-nav { display: flex; flex: none; align-items: center; gap: 8px; }
+.social-link { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid transparent; border-radius: var(--radius); color: var(--accent); text-decoration: none; transition: background-color 160ms ease, border-color 160ms ease; }
+.social-link svg { display: block; fill: currentColor; }
+.social-link:hover { background: var(--accent-soft); border-color: var(--rule-dark); }
 
 #app { width: 100%; max-width: 1320px; margin: 0 auto; }
 .stage { display: grid; grid-template-columns: minmax(290px, 380px) minmax(0, 1fr); gap: clamp(30px, 4vw, 60px); padding: 34px 44px 56px; min-height: 720px; }
@@ -232,7 +230,6 @@ h1[tabindex="-1"]:focus { outline: none; }
   .brand-name { font-size: 20px; }
   .brand-mark { width: 36px; height: 38px; font-size: 22px; }
   .brand-subtitle { font-size: 9px; }
-  .history-icon { margin-right: 7px; }
   .stage { display: flex; flex-direction: column; gap: 20px; padding: 8px 24px 36px; min-height: 0; }
   .narrator { display: block; width: 100%; max-width: 600px; margin: 0 auto; padding: 0; }
   .narrator::before, .narrator::after { display: none; }
@@ -277,8 +274,6 @@ h1[tabindex="-1"]:focus { outline: none; }
   .site-header { padding: 15px 16px; gap: 10px; }
   .brand-name { font-size: 19px; }
   .brand-subtitle { font-size: 8px; letter-spacing: .09em; }
-  .history-icon { display: none; }
-  .site-nav .text-button { font-size: 11px; letter-spacing: 0; }
   .stage { padding: 8px 16px 30px; gap: 16px; }
   .narrator-dialogue { grid-template-columns: 62px minmax(0, 1fr); column-gap: 12px; padding: 13px 14px; }
   .narrator-name { font-size: 18px; }
@@ -305,7 +300,6 @@ h1[tabindex="-1"]:focus { outline: none; }
   .brand { gap: 8px; }
   .brand-mark { width: 30px; height: 34px; font-size: 20px; }
   .brand-name { font-size: 17px; }
-  .site-nav .text-button { font-size: 10px; }
   .stage { padding-left: 12px; padding-right: 12px; }
   .narrator-dialogue { grid-template-columns: 58px minmax(0, 1fr); column-gap: 9px; padding: 12px; }
   .narrator-line { padding-left: 9px; }
