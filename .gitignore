@@ -1,0 +1,15 @@
+# 制作資料・一時出力は公開リポジトリで追跡しない。
+/private/
+/authoring/
+/Kakuseigar-authoring/
+/build/
+/dist/
+/coverage/
+/node_modules/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
