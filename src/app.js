@@ -2,13 +2,17 @@ import { validateRuntime } from './engine.js';
 import { QuizSession } from './session.js';
 import { createStorage, fingerprint } from './storage.js';
 import { QuestionPortraits } from './portraits.js';
+import { NarratorInteraction, NARRATOR_THRESHOLDS } from './narrator-interaction.js';
+import { shareWork, shareCompletion, shareRobot } from './sharing.js';
 
 const app = document.querySelector('#app');
 const notice = document.querySelector('#notice');
 const toastElement = document.querySelector('#toast');
 const storage = createStorage();
+const narratorStorage = createStorage(undefined, 'kakuseigar:narrator:v1');
 let data, presentation, session;
 let questionPortraits;
+let narratorInteraction;
 let noticeText = '';
 let lockedUntil = 0;
 let toastTimer;
@@ -50,7 +54,7 @@ function persist() {
 }
 
 function updateNotice() {
-  notice.textContent = noticeText || (!storage.available ? 'この環境では、再読込すると最初に戻る場合があります。' : '');
+  notice.textContent = noticeText || (!storage.available || !narratorStorage.available ? 'この環境では、再読込すると最初に戻る場合があります。' : '');
   notice.hidden = !notice.textContent;
 }
 
@@ -83,20 +87,71 @@ function action(change, token, { route, replace = true } = {}) {
   }
 }
 
-function narrator(mood, line) {
-  const portrait = el('div', { className: 'portrait', 'aria-hidden': 'true' });
-  portrait.append(el('span', { className: 'portrait-mark' }, '青'), el('span', { className: 'portrait-caption' }, 'お話のご案内'));
-  const imagePath = presentation?.narrator.images?.[mood] || presentation?.narrator.images?.idle;
-  if (imagePath && /^assets\/[a-zA-Z0-9_./-]+$/.test(imagePath) && !imagePath.includes('..')) {
-    const image = el('img', { src: new URL('../' + imagePath, import.meta.url), alt: '', className: 'narrator-image', width: 1024, height: 1536, decoding: 'async' });
-    image.addEventListener('load', () => { portrait.replaceChildren(image); portrait.classList.add('has-image'); });
-    // The typographic portrait stays usable if a replacement image cannot load.
+function robotName() { return presentation.narrator.robot?.name || '芳香ちゃんロボ'; }
+
+function persistNarrator() {
+  narratorStorage.write(narratorInteraction.exportState());
+  updateNotice();
+}
+
+function updateNarrator(aside, mood) {
+  const actor = narratorInteraction.actor;
+  aside.dataset.actor = actor;
+  const name = actor === 'seiga' ? presentation.narrator.name : robotName();
+  aside.querySelector('.narrator-name').textContent = name;
+  aside.querySelector('.narrator-tag').textContent = actor === 'seiga' ? '本日の案内役' : '本日の代理';
+  const portrait = aside.querySelector('.portrait');
+  if (portrait.tagName === 'BUTTON') portrait.setAttribute('aria-label', `${name}に声をかける`);
+  const imagePath = actor === 'seiga' ? (presentation.narrator.images[mood] || presentation.narrator.images.idle)
+    : presentation.narrator.robot?.images?.[actor === 'broken' ? 'broken' : 'idle'];
+  if (portrait.dataset.imagePath === (imagePath || '')) return;
+  portrait.dataset.imagePath = imagePath || '';
+  portrait.classList.remove('has-image');
+  portrait.replaceChildren(el('span', { className: 'portrait-mark', 'aria-hidden': 'true' }, actor === 'seiga' ? '青' : actor === 'robot' ? '芳' : '…'),
+    el('span', { className: 'portrait-caption', 'aria-hidden': 'true' }, actor === 'broken' ? 'しばらく、お休み' : 'お話のご案内'));
+  if (imagePath && /^assets\/[a-zA-Z0-9_./-]+\.(png|webp|svg)$/.test(imagePath) && !imagePath.includes('..')) {
+    const image = el('img', { src: new URL('../' + imagePath, import.meta.url), alt: '', className: 'narrator-image',
+      width: 1024, height: 1536, decoding: 'async', draggable: 'false' });
+    image.addEventListener('load', () => {
+      if (portrait.dataset.imagePath !== imagePath) return;
+      portrait.replaceChildren(image); portrait.classList.add('has-image');
+    });
   }
-  return el('aside', { className: 'narrator', 'aria-label': '案内役の言葉' }, portrait,
+}
+
+function narrator(mood, line) {
+  const broken = narratorInteraction.actor === 'broken';
+  const portrait = broken ? el('div', { className: 'portrait', 'aria-hidden': 'true' })
+    : button('', () => {
+      if (ignoreClick || document.querySelector('dialog[open]')) { ignoreClick = false; return; }
+      const reply = narratorInteraction.tap(location.hash || activeRoute());
+      persistNarrator();
+      if (narratorInteraction.actor === 'broken') { render({ preserveScroll: true }); return; }
+      updateNarrator(aside, mood);
+      reaction.textContent = narratorInteraction.count === NARRATOR_THRESHOLDS.robot ? `青娥「${reply}」` : reply;
+      reaction.hidden = false;
+    }, 'portrait portrait-button');
+  let pointerStart = null, ignoreClick = false;
+  portrait.addEventListener('pointerdown', event => { pointerStart = [event.clientX, event.clientY]; ignoreClick = false; });
+  portrait.addEventListener('pointerup', event => {
+    if (pointerStart) ignoreClick = Math.hypot(event.clientX - pointerStart[0], event.clientY - pointerStart[1]) > 10;
+    pointerStart = null;
+  });
+  portrait.addEventListener('pointercancel', () => { pointerStart = null; ignoreClick = true; });
+  portrait.addEventListener('keydown', event => {
+    if (!['Enter', ' '].includes(event.key)) return;
+    if (event.repeat) event.preventDefault();
+    else ignoreClick = false;
+  });
+  const reaction = el('p', { className: 'narrator-reaction', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true', hidden: '' });
+  const aside = el('aside', { className: 'narrator', 'aria-label': '案内役の言葉' },
+    el('div', { className: 'portrait-wrap' }, portrait, reaction),
     el('div', { className: 'narrator-dialogue' },
       el('p', { className: 'narrator-tag' }, '本日の案内役'),
-      el('p', { className: 'narrator-name' }, presentation?.narrator.name || '霍青娥'),
+      el('p', { className: 'narrator-name' }),
       el('p', { className: 'narrator-line' }, line)));
+  updateNarrator(aside, mood);
+  return aside;
 }
 
 function stage(mood, line, content, screen) {
@@ -115,6 +170,8 @@ function currentResult() {
 function reset() {
   if (session.state.started && !window.confirm('今回の回答と紹介履歴を消して、最初から遊びますか？')) return;
   storage.clear();
+  narratorStorage.clear();
+  narratorInteraction.reset();
   noticeText = '';
   session = new QuizSession(data, presentation);
   questionPortraits.reset();
@@ -182,21 +239,58 @@ function caption(work) {
   return el('div', { className: 'caption' }, el('p', { className: 'caption-label' }, '作者による紹介'), ...paragraphs.map(p => el('p', {}, p)));
 }
 
+function workIllustration(work) {
+  const art = presentation.work_art_by_work?.[work.id];
+  if (!art || ![art.preview, art.full].every(path => typeof path === 'string'
+    && /^assets\/[a-zA-Z0-9_./-]+\.(png|webp|jpe?g)$/.test(path) && !path.includes('..'))) return null;
+  const image = el('img', { src: new URL('../' + art.preview, import.meta.url),
+    alt: art.alt, width: art.width, height: art.height, decoding: 'async' });
+  const trigger = button('', () => openWorkArt(work, art, trigger), 'work-art',
+    { 'aria-label': `『${work.title}』のイメージ画を大きく見る`, 'aria-haspopup': 'dialog' });
+  trigger.append(image, el('span', { className: 'work-art-hint', 'aria-hidden': 'true' }, '絵を大きく見る ＋'));
+  image.addEventListener('error', () => {
+    trigger.closest('.work-preview')?.classList.remove('has-art');
+    trigger.remove();
+  });
+  return trigger;
+}
+
+function openWorkArt(work, art, trigger) {
+  const dialog = el('dialog', { className: 'dialog art-dialog', 'aria-labelledby': 'art-dialog-title' });
+  const close = button('閉じる ×', () => dialog.close(), 'text-button art-dialog-close', { autofocus: '' });
+  const image = el('img', { className: 'art-dialog-image', src: new URL('../' + art.full, import.meta.url),
+    alt: art.alt, width: art.width, height: art.height, decoding: 'async' });
+  image.addEventListener('error', () => image.replaceWith(el('p', { role: 'status' }, '画像を読み込めませんでした。閉じて、もう一度お試しください。')));
+  dialog.append(el('div', { className: 'art-dialog-heading' }, el('h2', { id: 'art-dialog-title' }, work.title), close), image);
+  dialog.addEventListener('click', event => {
+    if (event.target !== dialog) return;
+    const box = dialog.getBoundingClientRect();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
+  });
+  dialog.addEventListener('close', () => { dialog.remove(); if (trigger.isConnected) trigger.focus({ preventScroll: true }); });
+  document.body.append(dialog);
+  dialog.showModal();
+}
+
 function resultView(result, historical) {
   const work = data.works.find(w => w.id === result.workId);
   const token = session.state.activeStepId;
   const castIds = presentation.public_cast_by_work[work.id] || [];
   const cast = work.characters.filter(c => castIds.includes(c.id));
+  const art = workIllustration(work);
   const content = [el('div', { className: 'result-heading' }, el('p', { className: 'eyebrow' }, historical ? 'これまでのお薦め' : 'こちらのお話はいかが？'),
     el('span', { className: 'result-index' }, `${String(result.introducedCount).padStart(2, '0')} / ${String(result.totalWorks).padStart(2, '0')}`)),
     el('article', { className: 'work-card' }, el('p', { className: 'work-number' }, 'あなたに差し出す、一編'), title(work.title, 'work-title'),
-      result.reason ? el('p', { className: 'reason' }, result.reason) : null,
-      externalLink('pixivで読む', work.pixiv_url), el('p', { className: 'fine-print' }, '新しいタブで開きます'), caption(work),
+      el('div', { className: `work-preview${art ? ' has-art' : ''}` }, art,
+        el('div', { className: 'work-invitation' }, result.reason ? el('p', { className: 'reason' }, result.reason) : null,
+          externalLink('pixivで読む', work.pixiv_url), el('p', { className: 'fine-print' }, '新しいタブで開きます')), caption(work)),
       cast.length ? el('div', { className: 'chip-list', 'aria-label': '登場人物' }, ...cast.map(c => el('span', { className: 'chip' }, c.name))) : null)];
-  if (result.isLast) content.push(el('div', { className: 'completion', role: 'status' }, el('strong', {}, '制覇おめでとう！'), el('p', {}, `公開${result.totalWorks}作品をご案内しました。`)));
+  if (result.isLast) content.push(el('div', { className: 'completion' },
+    el('div', { role: 'status' }, el('strong', {}, '制覇おめでとう！'), el('p', {}, `公開${result.totalWorks}作品をご案内しました。`)),
+    button('全作品紹介を共有', event => shareCompletion(result.totalWorks, presentation.site_url, event.currentTarget), 'secondary-button', { 'aria-haspopup': 'dialog' })));
   if (!historical) content.push(button('いいえ、もう少し探す →', () => action(t => session.decline(t), token), 'secondary-button'));
   else content.push(button('今の案内に戻る', () => go(activeRoute()), 'secondary-button'));
-  content.push(el('div', { className: 'result-actions' }, button('この結果を共有', () => shareResult(work), 'text-button'),
+  content.push(el('div', { className: 'result-actions' }, button('この結果を共有', event => shareWork(work, presentation.site_url, event.currentTarget), 'text-button', { 'aria-haspopup': 'dialog' }),
     button('これまでのお薦め', () => openHistory(), 'text-button')));
   return { node: stage(result.isLast ? 'celebrate' : 'recommend', result.lead || 'こちらのお話はいかが？', content, 'result'), castIds: cast.map(c => c.id) };
 }
@@ -237,28 +331,30 @@ function about() {
     el('div', { className: 'button-row' }, button('案内に戻る', () => go(activeRoute()), 'secondary-button'))], 'about');
 }
 
-async function shareResult(work) {
-  const text = `青娥に『${work.title}』を勧められました。あなたにはどんなお話が出るでしょう？`;
-  const url = presentation.site_url;
-  if (navigator.share) {
-    try { await navigator.share({ title: presentation.site_title, text, url }); return; }
-    catch (error) { if (error.name === 'AbortError') return; }
-  }
-  try { await navigator.clipboard.writeText(text + '\n' + url); toast('共有文とリンクをコピーしました。'); }
-  catch {
-    const dialog = el('dialog', { className: 'dialog', 'aria-label': '共有文をコピー' });
-    const field = el('textarea', { rows: 5, readonly: '', 'aria-label': '共有文' }, text + '\n' + url);
-    dialog.append(el('h2', {}, 'こちらをコピーできます'), field, button('閉じる', () => dialog.close(), 'secondary-button'));
-    dialog.addEventListener('close', () => dialog.remove());
-    document.body.append(dialog);
-    dialog.showModal(); field.select();
-  }
+function robotAchievement() {
+  return stage('idle', '…………。', [
+    el('p', { className: 'eyebrow' }, '思わぬ実績'), title(`${robotName()}を\n爆破してしまった！`),
+    el('p', { className: 'lede' }, 'お話を選びに来たはずなのに……。\n少し、寄り道が過ぎたようです。'),
+    el('div', { className: 'achievement-actions' },
+      button('爆破の実績を共有', event => shareRobot(robotName(), presentation.site_url, event.currentTarget), 'secondary-button', { 'aria-haspopup': 'dialog' }),
+      button('青娥を呼び戻して案内を続ける', () => {
+        const route = narratorInteraction.resume();
+        persistNarrator();
+        go(route || activeRoute(), true, { preserveScroll: true });
+      })),
+    el('p', { className: 'fine-print' }, 'ここまでの回答と、ご紹介した作品はそのままです。')], 'robot-achievement');
 }
 
 function render(viewOptions = {}) {
   if (!session) return;
   let route = location.hash || activeRoute();
-  if (session.state.phase === 'favorite' && !['#/favorite', '#/history', '#/about'].includes(route) && !route.startsWith('#/review/')) {
+  const robotFinished = narratorInteraction.actor === 'broken';
+  if (robotFinished) {
+    route = '#/achievement/robot'; history.replaceState(null, '', route);
+  } else if (route === '#/achievement/robot') {
+    route = activeRoute(); history.replaceState(null, '', route);
+  }
+  if (!robotFinished && session.state.phase === 'favorite' && !['#/favorite', '#/history', '#/about'].includes(route) && !route.startsWith('#/review/')) {
     route = activeRoute(); history.replaceState(null, '', route);
   }
   if (['#/play', '#/favorite', '#/characters', '#/ending'].includes(route)) {
@@ -266,7 +362,8 @@ function render(viewOptions = {}) {
     if (!allowed) { route = activeRoute(); history.replaceState(null, '', route); }
   }
   let node, shownResult, castIds = [];
-  if (route.startsWith('#/result/') || route.startsWith('#/review/')) {
+  if (robotFinished) node = robotAchievement();
+  else if (route.startsWith('#/result/') || route.startsWith('#/review/')) {
     const id = route.split('/').at(-1);
     const result = [session.state.pendingResult, ...session.state.resultHistory].find(r => r?.resultId === id);
     if (result) {
@@ -288,7 +385,7 @@ function render(viewOptions = {}) {
     // Buttons were built with the preceding token; rebuild with the committed step.
     return render(viewOptions);
   }
-  const introduced = [presentation.narrator.id, ...castIds,
+  const introduced = robotFinished ? [] : [presentation.narrator.id, ...castIds,
     ...(route === '#/favorite' && session.state.phase === 'favorite' ? [session.state.favoriteCharacterId] : [])];
   const novelIds = introduced.filter(id => !session.state.introducedCharacterIds.includes(id));
   if (novelIds.length) {
@@ -303,14 +400,14 @@ function render(viewOptions = {}) {
   updateNotice();
   const heading = app.querySelector('[data-focus]');
   heading?.focus({ preventScroll: true });
-  if (viewOptions.scrollToQuestion && window.matchMedia('(max-width: 820px)').matches
+  if (!viewOptions.preserveScroll && viewOptions.scrollToQuestion && window.matchMedia('(max-width: 820px)').matches
       && ['question', 'favorite'].includes(node.dataset.screen)) {
     // Keep the large portrait available above, but bring the next question into view.
     node.querySelector('.scene').scrollIntoView({
       block: 'start',
       behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
     });
-  } else {
+  } else if (!viewOptions.preserveScroll) {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
   document.title = `${route === '#/start' ? '' : 'お話のご案内 | '}${presentation.site_title}`;
@@ -326,8 +423,16 @@ async function load() {
     questionPortraits = new QuestionPortraits(presentation.narrator.question_moods);
     presentation.dataset_version += ':' + fingerprint(texts.join('\n'));
     const saved = storage.read();
+    let restored = Boolean(saved);
     try { session = new QuizSession(data, presentation, { state: saved }); }
-    catch { noticeText = '案内内容が更新されたか、前回の記録を読み込めませんでした。新しくお話を始められます。'; session = new QuizSession(data, presentation); }
+    catch {
+      restored = false;
+      noticeText = '案内内容が更新されたか、前回の記録を読み込めませんでした。新しくお話を始められます。';
+      session = new QuizSession(data, presentation);
+    }
+    if (!restored) narratorStorage.clear();
+    narratorInteraction = new NarratorInteraction({ datasetVersion: presentation.dataset_version, saved: restored ? narratorStorage.read() : null });
+    persistNarrator();
     if (!location.hash || (location.hash !== '#/about' && !session.state.started)) history.replaceState(null, '', activeRoute());
     render();
   } catch (error) {

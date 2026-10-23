@@ -1,21 +1,21 @@
 export const STORAGE_KEY = 'kakuseigar:session:v1';
 
-export function createStorage(provider = () => window.sessionStorage) {
+export function createStorage(provider = () => window.sessionStorage, key = STORAGE_KEY) {
   let available = true;
   return {
     get available() { return available; },
     read() {
       try {
-        const value = provider().getItem(STORAGE_KEY);
+        const value = provider().getItem(key);
         return value === null ? null : JSON.parse(value);
       } catch { available = false; return null; }
     },
     write(state) {
-      try { provider().setItem(STORAGE_KEY, JSON.stringify(state)); return true; }
+      try { provider().setItem(key, JSON.stringify(state)); return true; }
       catch { available = false; return false; }
     },
     clear() {
-      try { provider().removeItem(STORAGE_KEY); return true; }
+      try { provider().removeItem(key); return true; }
       catch { available = false; return false; }
     },
   };

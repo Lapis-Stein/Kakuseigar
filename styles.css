@@ -64,10 +64,18 @@ h1[tabindex="-1"]:focus { outline: none; }
 .stage { display: grid; grid-template-columns: minmax(290px, 380px) minmax(0, 1fr); gap: clamp(30px, 4vw, 60px); padding: 34px 44px 56px; min-height: 720px; }
 .narrator { position: relative; padding: 8px 0 0; align-self: start; min-width: 0; }
 .narrator::before { content: "SEIGA'S STUDY"; display: block; margin-bottom: 12px; color: #6f8079; font-family: Georgia, serif; font-size: 10px; letter-spacing: .24em; text-align: center; }
+.portrait-wrap { position: relative; }
+.portrait-button { appearance: none; padding: 0; border: 0; border-radius: 4px; background: transparent; user-select: none; }
+.portrait-button > * { pointer-events: none; }
+.portrait-button:focus-visible { outline-offset: -4px; }
+.narrator-reaction { position: absolute; z-index: 3; left: 12px; right: 12px; bottom: 96px; padding: 12px 16px; border: 1px solid var(--rule-dark); border-radius: 10px 10px 10px 2px; background: #fffdf7f5; box-shadow: 0 4px 14px #354a501a; color: var(--ink); font-family: var(--serif); font-size: 15px; line-height: 1.85; overflow-wrap: anywhere; pointer-events: none; }
+.narrator[data-actor="robot"] .narrator-name, .narrator[data-actor="broken"] .narrator-name { font-size: 20px; letter-spacing: .03em; overflow-wrap: anywhere; }
 .portrait { position: relative; display: grid; place-items: center; min-height: 520px; width: 100%; margin: 0 auto; color: var(--accent); font-family: var(--serif); font-size: 72px; font-weight: 400; line-height: 1; isolation: isolate; }
 .portrait::before { content: ""; position: absolute; width: 168px; height: 168px; border: 1px solid #b3bbae80; border-radius: 50%; z-index: -1; background: radial-gradient(circle at 65% 33%, #f2f2e8d9, #dfe7e3d9 72%); }
 .portrait::after { content: ""; position: absolute; width: 130px; height: 130px; border: 1px solid #aab9b580; transform: translate(28px, 10px) rotate(23deg); z-index: -2; }
 .portrait img { display: block; width: 100%; height: 520px; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 8px 14px #566f6d20); mask-image: linear-gradient(to bottom, #000 85%, #000b 94%, transparent 100%); }
+/* The square substitute artwork includes the full figure and its effect. */
+.narrator:is([data-actor="robot"], [data-actor="broken"]) .portrait img { object-position: center; mask-image: none; }
 .portrait-mark { align-self: end; }
 .portrait-caption { align-self: start; margin-top: 12px; font-family: var(--sans); font-size: 10px; letter-spacing: .15em; }
 .portrait.has-image::before, .portrait.has-image::after { display: none; }
@@ -131,7 +139,7 @@ h1[tabindex="-1"]:focus { outline: none; }
 .result-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .result-heading .eyebrow { margin: 0; }
 .result-index { color: var(--muted); font-size: 10px; white-space: nowrap; }
-.work-card { position: relative; border: 1px solid var(--rule); background: var(--paper-light); padding: 29px 30px 28px; margin-top: 17px; }
+.work-card { position: relative; container-type: inline-size; border: 1px solid var(--rule); background: var(--paper-light); padding: 29px 30px 28px; margin-top: 17px; }
 .work-card::before { content: ""; position: absolute; top: -1px; left: -1px; height: 3px; width: 48px; background: var(--accent); }
 .work-heading { display: flex; align-items: flex-start; gap: 18px; }
 .work-number { color: #85948c; font-family: Georgia, serif; font-size: 34px; line-height: 1.4; flex: none; }
@@ -140,6 +148,25 @@ h1[tabindex="-1"]:focus { outline: none; }
 .work-title { font-family: var(--serif); font-size: clamp(23px, 2.5vw, 32px); line-height: 1.7; font-weight: 500; letter-spacing: .045em; overflow-wrap: anywhere; }
 .work-meta { color: var(--muted); font-size: 11px; margin-top: 9px; }
 .reason { color: var(--accent); font-size: 13px; line-height: 2; margin: 20px 0 0; padding-bottom: 20px; border-bottom: 1px solid var(--rule); overflow-wrap: anywhere; }
+.work-preview { display: grid; gap: 22px; margin-top: 22px; }
+.work-preview.has-art { grid-template-areas: "art" "invitation" "caption"; }
+.work-preview.has-art .work-art { grid-area: art; }
+.work-preview.has-art .work-invitation { grid-area: invitation; }
+.work-preview.has-art > .caption, .work-preview.has-art > .fine-print { grid-area: caption; }
+.work-preview > .caption, .work-preview .caption-label { margin-top: 0; }
+.work-art { position: relative; display: block; justify-self: center; width: 180px; max-width: 100%; padding: 0; border: 1px solid var(--rule-dark); background: var(--paper); cursor: zoom-in; box-shadow: 0 5px 15px #404b4220; }
+.work-art img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 3; object-fit: contain; }
+.work-art-hint { position: absolute; right: 5px; bottom: 5px; padding: 4px 8px; border: 1px solid #fff8; border-radius: 2px; color: var(--ink); background: #fffdf4ed; font-size: 10px; line-height: 1.6; letter-spacing: .04em; }
+.work-art:hover { border-color: var(--accent); }
+.work-invitation { min-width: 0; align-self: center; }
+.work-invitation .reason { margin: 0 0 18px; padding: 0; border: 0; }
+.work-invitation .fine-print { margin-top: 9px; }
+.work-preview.has-art .primary-button { width: 100%; }
+@container (min-width: 470px) {
+  .work-preview.has-art { grid-template-columns: 190px minmax(0, 1fr); grid-template-areas: "art caption" "art invitation"; column-gap: 24px; row-gap: 18px; align-items: start; }
+  .work-preview.has-art .work-invitation { align-self: start; }
+  .work-art { width: 190px; align-self: start; }
+}
 .caption-label { display: block; color: var(--muted); font-size: 10px; letter-spacing: .1em; margin: 22px 0 9px; }
 .caption { white-space: pre-wrap; overflow-wrap: anywhere; color: #53666a; font-size: 13px; line-height: 2.05; margin: 20px 0 0; }
 .caption-label + .caption { margin-top: 0; }
@@ -154,6 +181,8 @@ h1[tabindex="-1"]:focus { outline: none; }
 .completion { margin: 22px 0; padding: 20px 22px; border: 1px solid #b6ada073; background: #ece6ed; color: #6d5e69; }
 .completion h2, .completion h3 { font-family: var(--serif); font-size: 21px; font-weight: 500; line-height: 1.7; }
 .completion p { font-size: 12px; margin-top: 6px; line-height: 1.9; }
+.completion > .secondary-button { margin-top: 16px; width: 100%; }
+.achievement-actions { display: grid; gap: 12px; margin-top: 24px; }
 .chip-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
 .chip { display: inline-flex; align-items: center; max-width: 100%; font-size: 10px; line-height: 1.7; padding: 3px 8px; border: 1px solid var(--rule); color: var(--muted); background: var(--paper); border-radius: 2px; overflow-wrap: anywhere; }
 .chip[data-kind="favorite"] { color: var(--lavender-ink); border-color: #b8acbf80; background: #ece6ed; }
@@ -187,6 +216,11 @@ h1[tabindex="-1"]:focus { outline: none; }
 .dialog .button-row { margin-top: 24px; }
 .dialog .button-row > * { flex: 1; }
 .dialog-close { float: right; background: transparent; border: 0; min-width: 44px; min-height: 44px; margin: -12px -12px 8px 8px; font-size: 21px; color: var(--muted); }
+.dialog.art-dialog { width: min(850px, calc(100% - 24px)); max-height: calc(100svh - 24px); padding: 16px; }
+.art-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.art-dialog-heading h2 { font-size: 17px; overflow-wrap: anywhere; }
+.art-dialog-close { flex: none; padding: 8px; }
+.art-dialog-image { display: block; width: 100%; height: auto; max-height: calc(100svh - 144px); object-fit: contain; }
 
 .site-footer { max-width: 1232px; margin: 0 auto; padding: 22px 0 30px; border-top: 1px solid var(--rule); color: #65736f; font-size: 10px; line-height: 1.9; display: flex; justify-content: space-between; align-items: baseline; gap: 12px 30px; flex-wrap: wrap; }
 .site-footer p { max-width: 72ch; }
@@ -204,6 +238,13 @@ h1[tabindex="-1"]:focus { outline: none; }
 @keyframes page-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 .dialog textarea { display: block; width: 100%; margin: 20px 0; padding: 12px; color: var(--ink); background: #fffdf7; border: 1px solid var(--rule-dark); border-radius: var(--radius); resize: vertical; }
+.dialog.share-dialog { width: min(540px, calc(100% - 32px)); }
+.share-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.share-heading h2 { font-size: 21px; }
+.share-close { flex: none; padding: 8px; }
+.dialog .share-description { margin-top: 10px; }
+.dialog .share-text { min-height: 220px; font-size: 14px; line-height: 1.9; }
+.dialog .share-status { min-height: 3.8em; margin-top: 14px; color: var(--accent); font-size: 12px; line-height: 1.9; }
 .history-title:hover { color: var(--accent); }
 .site-footer > a { display: inline-flex; align-items: center; min-height: 44px; }
 .portrait-caption { line-height: 1.4; }
@@ -238,7 +279,12 @@ h1[tabindex="-1"]:focus { outline: none; }
   .portrait::before { width: 110px; height: 110px; }
   .portrait::after { width: 85px; height: 85px; transform: translate(12px, 4px) rotate(23deg); }
   .portrait img { position: absolute; top: 0; left: 0; width: 100%; height: auto; object-position: center top; mask-image: none; }
+  .narrator:is([data-actor="robot"], [data-actor="broken"]) .portrait { mask-image: none; }
+  .narrator:is([data-actor="robot"], [data-actor="broken"]) .portrait img { position: static; align-self: start; height: calc(clamp(260px, 80vw, 330px) - 24px); }
   .portrait-caption { display: none; }
+  .narrator-reaction { bottom: 40px; left: max(12px, calc((100% - 350px) / 2)); right: max(12px, calc((100% - 350px) / 2)); font-size: 13px; padding: 10px 14px; }
+  .narrator[data-actor="robot"] .narrator-name, .narrator[data-actor="broken"] .narrator-name { font-size: 14px; line-height: 1.55; letter-spacing: 0; }
+  .narrator[data-actor="robot"] .narrator-dialogue, .narrator[data-actor="broken"] .narrator-dialogue { grid-template-columns: 80px minmax(0, 1fr); }
   .narrator-dialogue { display: grid; grid-template-columns: 72px minmax(0, 1fr); column-gap: 14px; margin-top: -24px; padding: 14px 18px; }
   .narrator-tag { grid-column: 1; font-size: 9px; letter-spacing: .05em; white-space: nowrap; line-height: 1.5; margin: 0 0 3px; }
   .narrator-name { grid-column: 1; font-size: 20px; line-height: 1.5; margin: 0; letter-spacing: .07em; }

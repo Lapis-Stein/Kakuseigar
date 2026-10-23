@@ -24,3 +24,20 @@ test('content changes invalidate the fingerprint', () => {
   assert.equal(fingerprint('same'), fingerprint('same'));
   assert.notEqual(fingerprint('{"score":1}'), fingerprint('{"score":2}'));
 });
+
+test('narrator storage and its reset cannot erase the recommendation record', () => {
+  const map = new Map();
+  const provider = () => ({ getItem: k => map.get(k) ?? null, setItem: (k, v) => map.set(k, v), removeItem: k => map.delete(k) });
+  const quiz = createStorage(provider);
+  const narrator = createStorage(provider, 'kakuseigar:narrator:v1');
+  const answers = { answers: [['T01', 'a']], resultHistory: [{ resultId: 'result-1' }] };
+  quiz.write(answers);
+  narrator.write({ count: 100 });
+  assert.deepEqual(quiz.read(), answers);
+  narrator.clear();
+  assert.deepEqual(quiz.read(), answers);
+  assert.equal(narrator.read(), null);
+  map.set('kakuseigar:narrator:v1', 'invalid json');
+  assert.equal(narrator.read(), null);
+  assert.deepEqual(quiz.read(), answers);
+});

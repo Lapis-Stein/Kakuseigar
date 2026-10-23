@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1536" viewBox="0 0 1024 1536" fill="none">
+  <title>仮の案内ロボ</title>
+  <defs>
+    <linearGradient id="metal" x1="298" y1="330" x2="710" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ecedec"/>
+      <stop offset=".5" stop-color="#becbd0"/>
+      <stop offset="1" stop-color="#8b9ea9"/>
+    </linearGradient>
+    <linearGradient id="robe" x1="299" y1="780" x2="758" y2="1455" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a5a0c1"/>
+      <stop offset="1" stop-color="#676789"/>
+    </linearGradient>
+    <linearGradient id="hat" x1="373" y1="190" x2="626" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#64738e"/>
+      <stop offset="1" stop-color="#333b59"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#343b55" stroke-width="14" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M360 1235 321 1510h382l-39-275" fill="#424b68"/>
+    <path d="M376 745h272l113 139-34 471c-132 57-298 57-430 0l-34-471Z" fill="url(#robe)"/>
+    <path d="m355 808 157 115 157-115-40-72H395Z" fill="#e8e5db"/>
+    <path d="m395 736 117 187 117-187" stroke="#52677b" stroke-width="21"/>
+    <path d="M512 925v414" stroke="#525a78" stroke-width="19"/>
+    <path d="M304 1321c140 54 278 54 418 0l-3 64c-130 52-282 52-412 0Z" fill="#384961"/>
+    <path d="M284 847c-77 46-98 147-93 267l115 44 76-244" fill="url(#robe)"/>
+    <path d="M740 847c77 46 98 147 93 267l-115 44-76-244" fill="url(#robe)"/>
+    <path d="m187 1090 131 38-15 95-139-40Z" fill="#668e93"/>
+    <path d="m837 1090-131 38 15 95 139-40Z" fill="#668e93"/>
+    <path d="m187 1193-13 98c-6 46 76 71 93 19l25-86" fill="url(#metal)"/>
+    <path d="m837 1193 13 98c6 46-76 71-93 19l-25-86" fill="url(#metal)"/>
+    <path d="m213 1251-12 54m610-54 12 54" stroke="#778895" stroke-width="9"/>
+    <rect x="446" y="670" width="132" height="100" rx="24" fill="#7e949e"/>
+    <path d="M459 715h106" stroke="#c4d1d0" stroke-width="10"/>
+    <path d="M315 385c-52-16-75 11-75 65v79c0 36 29 56 72 44m397-188c52-16 75 11 75 65v79c0 36-29 56-72 44" fill="#6f8f9a"/>
+    <path d="M285 439v65m454-65v65" stroke="#d5e3dc" stroke-width="11"/>
+    <rect x="301" y="295" width="422" height="404" rx="111" fill="url(#metal)"/>
+    <path d="M301 469V361c0-94 83-144 211-144s211 50 211 144v108l-55-51-32 37-52-68-72 61-72-61-52 68-32-37Z" fill="#627281"/>
+    <path d="M330 285c11-81 76-135 182-135s171 54 182 135" fill="url(#hat)"/>
+    <path d="M312 282c129-23 271-23 400 0l-12 62c-125-20-251-20-376 0Z" fill="#414761"/>
+    <path d="M504 157v-37h16v37" fill="#859ba1"/>
+    <circle cx="512" cy="116" r="19" fill="#d6b28f"/>
+    <path d="m481 308 70 2-5 182-38-18-30 18Z" fill="#e7d9b2" stroke="#786e6a" stroke-width="8"/>
+    <path d="M368 502c0-22 20-39 45-39s45 17 45 39v49c0 22-20 39-45 39s-45-17-45-39Zm198 0c0-22 20-39 45-39s45 17 45 39v49c0 22-20 39-45 39s-45-17-45-39Z" fill="#36485b" stroke-width="9"/>
+    <path d="M399 504v37m198-37v37" stroke="#c5e6dc" stroke-width="16"/>
+    <path d="M460 630h104" stroke="#536778" stroke-width="10"/>
+    <path d="M489 619v21m46-21v21" stroke="#536778" stroke-width="7"/>
+    <circle cx="345" cy="611" r="13" fill="#7a909a" stroke-width="6"/>
+    <circle cx="679" cy="611" r="13" fill="#7a909a" stroke-width="6"/>
+    <circle cx="565" cy="1002" r="14" fill="#d5bc96" stroke-width="6"/>
+    <circle cx="565" cy="1110" r="14" fill="#d5bc96" stroke-width="6"/>
+    <path d="M466 1268h92v79h-92Z" fill="#71959b" stroke-width="9"/>
+    <path d="M490 1291h44v33h-44Z" fill="#c2d0c9" stroke-width="7"/>
+  </g>
+  <path d="M328 374v57m22 213c22 23 50 32 81 32" stroke="#f5f1e7" stroke-width="11" stroke-linecap="round" opacity=".55"/>
+</svg>

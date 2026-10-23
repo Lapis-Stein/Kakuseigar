@@ -7,18 +7,104 @@
     "id": "seiga",
     "name": "霍青娥",
     "images": {
-      "idle": "assets/seiga/idle.png",
-      "recommend": "assets/seiga/recommend.png",
-      "tease": "assets/seiga/tease.png",
-      "amused": "assets/seiga/amused.png",
-      "listening": "assets/seiga/listening.png",
-      "adjusting-glasses": "assets/seiga/adjusting-glasses.png",
-      "thinking": "assets/seiga/thinking.png",
-      "sleeve-smile": "assets/seiga/sleeve-smile.png",
-      "celebrate": "assets/seiga/celebrate.png",
-      "ending": "assets/seiga/ending.png"
+      "idle": "assets/seiga/idle.webp",
+      "recommend": "assets/seiga/recommend.webp",
+      "tease": "assets/seiga/tease.webp",
+      "amused": "assets/seiga/amused.webp",
+      "listening": "assets/seiga/listening.webp",
+      "adjusting-glasses": "assets/seiga/adjusting-glasses.webp",
+      "thinking": "assets/seiga/thinking.webp",
+      "sleeve-smile": "assets/seiga/sleeve-smile.webp",
+      "celebrate": "assets/seiga/celebrate.webp",
+      "ending": "assets/seiga/ending.webp"
     },
-    "question_moods": ["idle", "amused", "listening", "adjusting-glasses", "thinking", "sleeve-smile"]
+    "robot": {
+      "name": "芳香ちゃんロボ",
+      "images": {
+        "idle": "assets/robot/yoshika-idle.webp",
+        "broken": "assets/robot/explosion.webp"
+      }
+    },
+    "question_moods": [
+      "idle",
+      "amused",
+      "listening",
+      "adjusting-glasses",
+      "thinking",
+      "sleeve-smile"
+    ]
   },
-  "public_cast_by_work": {}
+  "public_cast_by_work": {},
+  "work_art_by_work": {
+    "10": {
+      "preview": "assets/works/10-preview.webp",
+      "full": "assets/works/10.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『道が征くを想えば』のイメージ画"
+    },
+    "01": {
+      "preview": "assets/works/01-preview.webp",
+      "full": "assets/works/01.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『冴ゆる風雅に秘めた俗情』のイメージ画"
+    },
+    "02": {
+      "preview": "assets/works/02-preview.webp",
+      "full": "assets/works/02.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『一寸先の彼岸』のイメージ画"
+    },
+    "03": {
+      "preview": "assets/works/03-preview.webp",
+      "full": "assets/works/03.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『灰にするのも、私の勝手』のイメージ画"
+    },
+    "04": {
+      "preview": "assets/works/04-preview.webp",
+      "full": "assets/works/04.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『一篇を書いた跡には』のイメージ画"
+    },
+    "05": {
+      "preview": "assets/works/05-preview.webp",
+      "full": "assets/works/05.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『この先、おひとり様につき』のイメージ画"
+    },
+    "06": {
+      "preview": "assets/works/06-preview.webp",
+      "full": "assets/works/06.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『仙人降りて天下の秋を知る』のイメージ画"
+    },
+    "07": {
+      "preview": "assets/works/07-preview.webp",
+      "full": "assets/works/07.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『月の王子さま』のイメージ画"
+    },
+    "08": {
+      "preview": "assets/works/08-preview.webp",
+      "full": "assets/works/08.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『こちらの席は貴方へ』のイメージ画"
+    },
+    "09": {
+      "preview": "assets/works/09-preview.webp",
+      "full": "assets/works/09.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『糸口は逃げ道に通ず』のイメージ画"
+    }
+  }
 }
