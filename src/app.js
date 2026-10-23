@@ -1,6 +1,6 @@
 import { validateRuntime } from './engine.js';
 import { QuizSession } from './session.js';
-import { createStorage, fingerprint } from './storage.js';
+import { createStorage, fingerprint } from './storage.js?v=20261023-1';
 import { QuestionPortraits } from './portraits.js';
 import { NarratorInteraction, NARRATOR_THRESHOLDS } from './narrator-interaction.js';
 import { shareWork, shareCompletion, shareRobot } from './sharing.js';
