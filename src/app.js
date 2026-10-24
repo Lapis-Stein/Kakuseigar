@@ -3,7 +3,7 @@ import { QuizSession } from './session.js?v=20261025-1';
 import { createStorage, fingerprint } from './storage.js?v=20261023-1';
 import { QuestionPortraits } from './portraits.js';
 import { NarratorInteraction, NARRATOR_THRESHOLDS } from './narrator-interaction.js';
-import { shareWork, shareCompletion, shareRobot } from './sharing.js';
+import { shareWork, shareCompletion, shareRobot } from './sharing.js?v=20261025-2';
 
 const app = document.querySelector('#app');
 const notice = document.querySelector('#notice');
@@ -156,7 +156,7 @@ function narrator(mood, line) {
 
 function stage(mood, line, content, screen) {
   return el('div', { className: 'stage', 'data-screen': screen }, narrator(mood, line),
-    el('section', { className: 'scene', 'aria-label': 'お話案内' }, ...content));
+    el('section', { className: 'scene', 'aria-label': presentation.site_title }, ...content));
 }
 
 function title(text, className = 'screen-title') {
@@ -180,7 +180,7 @@ function reset() {
 }
 
 function welcome() {
-  const content = [el('p', { className: 'eyebrow' }, 'KAKUSEIGAR · 青娥のお話案内'),
+  const content = [el('p', { className: 'eyebrow' }, `Kakuseigar · ${presentation.site_title}`),
     title('お探しのお話は、\nどんなお話？', 'intro-title'),
     el('p', { className: 'lede' }, '笑いたい日も、少し考えたい日も。\nあなたの気分に合いそうな一作を、青娥がご案内します。'),
     el('div', { className: 'intro-meta' }, el('span', {}, `まずは${data.rules.first_normal_result_after}問、時々寄り道`), el('span', {}, '気になる答えを選ぶだけ'))];
@@ -410,7 +410,7 @@ function render(viewOptions = {}) {
   } else if (!viewOptions.preserveScroll) {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
-  document.title = `${route === '#/start' ? '' : 'お話のご案内 | '}${presentation.site_title}`;
+  document.title = `Kakuseigar — ${presentation.site_title}`;
 }
 
 async function load() {

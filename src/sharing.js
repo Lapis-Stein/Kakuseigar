@@ -1,4 +1,4 @@
-const hashtags = '#青娥のお話案内 #東方Project';
+const hashtags = '#青娥の小説案内 #東方Project';
 let dialogSequence = 0;
 
 function requireText(value, label) {
@@ -14,12 +14,12 @@ export function buildWorkShareText(work, siteUrl) {
 
 export function buildCompletionShareText(totalWorks, siteUrl) {
   if (!Number.isSafeInteger(totalWorks) || totalWorks <= 0) throw new RangeError('The total work count must be a positive integer.');
-  return `青娥のお話案内を制覇！\n全${totalWorks}作品を紹介してもらいました。\n\nあなたにはどんなお話が出るでしょう？\n${hashtags}\n${requireText(siteUrl, 'The site URL')}`;
+  return `青娥の小説案内を制覇！\n全${totalWorks}作品を紹介してもらいました。\n\nあなたにはどんなお話が出るでしょう？\n${hashtags}\n${requireText(siteUrl, 'The site URL')}`;
 }
 
 export function buildRobotShareText(robotName, siteUrl) {
   const name = requireText(robotName, 'A robot name');
-  return `青娥のお話案内で、${name}を爆破してしまいました。\nお話を選びに来たはずなのに……。\n\n${hashtags}\n${requireText(siteUrl, 'The site URL')}`;
+  return `青娥の小説案内で、${name}を爆破してしまいました。\nお話を選びに来たはずなのに……。\n\n${hashtags}\n${requireText(siteUrl, 'The site URL')}`;
 }
 
 function el(tag, attrs = {}, ...children) {
@@ -83,13 +83,13 @@ function shareDialog(text, heading, description, trigger) {
 }
 
 export function shareWork(work, siteUrl, trigger) {
-  return shareDialog(buildWorkShareText(work, siteUrl), 'この一編をおすそわけ', '作品名と、お話案内へのリンクを共有します。', trigger);
+  return shareDialog(buildWorkShareText(work, siteUrl), 'この一編をおすそわけ', '作品名と、「青娥の小説案内」へのリンクを共有します。', trigger);
 }
 
 export function shareCompletion(totalWorks, siteUrl, trigger) {
-  return shareDialog(buildCompletionShareText(totalWorks, siteUrl), '全作品紹介の実績を共有', '全作品を紹介してもらった実績と、お話案内へのリンクを共有します。', trigger);
+  return shareDialog(buildCompletionShareText(totalWorks, siteUrl), '全作品紹介の実績を共有', '全作品を紹介してもらった実績と、「青娥の小説案内」へのリンクを共有します。', trigger);
 }
 
 export function shareRobot(robotName, siteUrl, trigger) {
-  return shareDialog(buildRobotShareText(robotName, siteUrl), '爆破の実績を共有', 'ロボを爆破した実績と、お話案内へのリンクを共有します。', trigger);
+  return shareDialog(buildRobotShareText(robotName, siteUrl), '爆破の実績を共有', 'ロボを爆破した実績と、「青娥の小説案内」へのリンクを共有します。', trigger);
 }
