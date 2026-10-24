@@ -7,6 +7,11 @@ const runtime = JSON.parse(readFileSync(new URL('../data/runtime.json', import.m
 const presentation = { dataset_version: 'session-tests-v1', narrator: { id: 'seiga', name: '霍青娥' }, public_cast_by_work: {} };
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const token = (session) => session.state.activeStepId;
+const expectedQuestionCount = (data, initialSetId) => {
+  const first = data.rules.first_question_sets.find(set => set.id === initialSetId).questions;
+  return first.length + data.rules.continuation_selection.channel_order.reduce((sum, channel) =>
+    sum + Math.min(data.works.length - 1, data.questions.filter(question => question.channel === channel && !first.includes(question.id)).length), 0);
+};
 const create = (data = runtime, display = presentation) => new QuizSession(data, display, { random: () => 0 });
 const start = (session) => session.start(token(session));
 const answer = (session, option = null) => session.answer(option, token(session));
@@ -141,8 +146,34 @@ test('all works can be introduced once, with an explicit final decline to the en
   }
   assert.equal(session.state.phase, 'ending');
   assert.equal(new Set(session.state.resultHistory.map((result) => result.workId)).size, runtime.works.length);
-  assert.equal(session.state.answers.length, 5 + 2 * (runtime.works.length - 1));
+  assert.equal(session.state.answers.length, expectedQuestionCount(runtime, session.state.initialSetId));
   assert.throws(() => session.decline(token(session)), /latest displayed/);
+});
+
+test('larger synthetic catalogues finish after available questions are exhausted', () => {
+  for (const count of [11, 18]) {
+    const data = clone(runtime);
+    data.works = data.works.slice(0, count);
+    while (data.works.length < count) {
+      const work = clone(data.works[0]);
+      work.id = `fixture-${data.works.length}`;
+      while (data.works.some(existing => existing.id === work.id)) work.id += '-extra';
+      data.works.push(work);
+    }
+    let session = create(data);
+    start(session);
+    while (session.state.phase !== 'ending') {
+      if (session.state.phase === 'question') answer(session);
+      else if (session.state.phase === 'favorite') session.answerFavorite('no', token(session));
+      else { commit(session); session.decline(token(session)); }
+      session = resume(session, data);
+    }
+    assert.equal(session.state.resultHistory.length, count);
+    assert.equal(new Set(session.state.resultHistory.map(result => result.workId)).size, count);
+    assert.equal(session.state.resultHistory.at(-1).isLast, true);
+    assert.equal(session.state.answers.length, expectedQuestionCount(data, session.state.initialSetId));
+    assert.equal(new Set(session.state.answers.map(([id]) => id)).size, session.state.answers.length);
+  }
 });
 
 test('question shortage uses one remaining question, then recommends without inventing questions', () => {

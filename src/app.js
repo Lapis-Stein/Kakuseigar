@@ -1,5 +1,5 @@
-import { validateRuntime } from './engine.js';
-import { QuizSession } from './session.js';
+import { validateRuntime } from './engine.js?v=20261025-1';
+import { QuizSession } from './session.js?v=20261025-1';
 import { createStorage, fingerprint } from './storage.js?v=20261023-1';
 import { QuestionPortraits } from './portraits.js';
 import { NarratorInteraction, NARRATOR_THRESHOLDS } from './narrator-interaction.js';

@@ -1,4 +1,4 @@
-import { Recommender, reasonFor } from './engine.js';
+import { Recommender, reasonFor } from './engine.js?v=20261025-1';
 
 const FORMAT_VERSION = 2;
 const PHASES = new Set(['question', 'favorite', 'result', 'ending']);

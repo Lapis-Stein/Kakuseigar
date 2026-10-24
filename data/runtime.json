@@ -2175,6 +2175,82 @@
         }
       ],
       "draft_intro_by_taste": {}
+    },
+    {
+      "id": "11",
+      "title": "柄にもないが袖にするには",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29462839",
+      "author_caption": "霍青娥の買い物に渋々付き添う蘇我屠自古。しかし、どうやら芳香の袖の刺繡は気になるご様子。 邪仙に見つかってしまったが最後、屠自古は次々と試着させられる羽目になる。",
+      "taste": {
+        "banter": 3,
+        "schemes": 1,
+        "craft": 2,
+        "action": 0,
+        "warmth": 4,
+        "reflection": 0,
+        "values": 1
+      },
+      "light_entry": 4,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "tojiko",
+          "name": "蘇我屠自古",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 2,
+            "bargaining": 1,
+            "care": 1,
+            "practicality": 0,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 1,
+            "bargaining": 2,
+            "care": 2,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "yoshika",
+          "name": "宮古芳香",
+          "role": "support",
+          "behavior": null,
+          "favorite_eligible": true
+        },
+        {
+          "id": "miko",
+          "name": "豊聡耳神子",
+          "role": "support",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 1,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": false
+        },
+        {
+          "id": "futo",
+          "name": "物部布都",
+          "role": "support",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
     }
   ]
 }

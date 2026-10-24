@@ -7,6 +7,8 @@ const { chromium } = require('playwright');
 const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 'msedge', headless: true });
 const base = process.env.TEST_URL || 'http://127.0.0.1:4173/Kakuseigar/';
 const presentation = JSON.parse(await readFile(new URL('../data/presentation.json', import.meta.url), 'utf8'));
+const runtime = JSON.parse(await readFile(new URL('../data/runtime.json', import.meta.url), 'utf8'));
+const totalWorks = runtime.works.length;
 const questionImages = new Set(presentation.narrator.question_moods.map(mood =>
   new URL(presentation.narrator.images[mood], base).pathname));
 const lastQuestionPortrait = new WeakMap();
@@ -94,13 +96,13 @@ try {
   await noOverflow(page);
   assert.equal(await page.locator('[data-option]').first().evaluate(n => getComputedStyle(n).fontSize), '16px');
   await page.screenshot({ path: 'test-results/question-mobile.png', fullPage: true });
-  for (let i = 1; i < 5; i++) {
+  for (let i = 1; i < runtime.rules.first_normal_result_after; i++) {
     await declineFavorite(page);
     await click(page, page.getByRole('button', { name: '今は決められない', exact: true }));
   }
   assert.equal((await state(page)).resultHistory.length, 1);
   const firstResult = (await state(page)).resultHistory[0];
-  await portrait(page, 'recommend');
+  await portrait(page, firstResult.isLast ? 'celebrate' : 'recommend');
   await page.screenshot({ path: 'test-results/result-mobile.png', fullPage: true });
   assert.match(await page.getByRole('link', { name: 'pixivで読む' }).getAttribute('href'), /^https:\/\/www\.pixiv\.net\/novel\/show\.php\?id=/);
   await page.reload();
@@ -111,7 +113,7 @@ try {
   await click(page, page.locator('.history-title').first());
   assert.equal(await page.getByRole('button', { name: 'いいえ、もう少し探す' }).count(), 0);
   await click(page, page.getByRole('button', { name: '今の案内に戻る' }));
-  for (let resultNumber = 1; resultNumber < 10; resultNumber++) {
+  for (let resultNumber = 1; resultNumber < totalWorks; resultNumber++) {
     await click(page, page.getByRole('button', { name: 'いいえ、もう少し探す' }));
     if (resultNumber === 1) {
       const before = (await state(page)).answers.length;
@@ -129,8 +131,12 @@ try {
     assert.equal((await state(page)).resultHistory.length, resultNumber + 1);
   }
   const complete = await state(page);
-  assert.equal(complete.answers.length, 23);
-  assert.equal(new Set(complete.resultHistory.map(r => r.workId)).size, 10);
+  const initialQuestions = runtime.rules.first_question_sets.find(set => set.id === complete.initialSetId).questions;
+  const expectedQuestions = initialQuestions.length + runtime.rules.continuation_selection.channel_order.reduce((sum, channel) =>
+    sum + Math.min(totalWorks - 1, runtime.questions.filter(question => question.channel === channel && !initialQuestions.includes(question.id)).length), 0);
+  assert.equal(complete.answers.length, expectedQuestions);
+  assert.equal(new Set(complete.answers.map(([id]) => id)).size, expectedQuestions);
+  assert.equal(new Set(complete.resultHistory.map(r => r.workId)).size, totalWorks);
   await page.getByText('制覇おめでとう！', { exact: true }).waitFor();
   await portrait(page, 'celebrate');
   await page.setViewportSize({ width: 320, height: 720 });
@@ -194,5 +200,5 @@ try {
   }
   await denied.locator('.work-title').waitFor();
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: 10 unique works, 23 ordinary questions, question portrait rotation, special portraits, automatic favorite, resume, history, ending, mobile auto-scroll, storage denied.');
+  console.log(`Browser checks passed: ${totalWorks} unique works, ${expectedQuestions} ordinary questions, question portrait rotation, special portraits, automatic favorite, resume, history, ending, mobile auto-scroll, storage denied.`);
 } finally { await browser.close(); }

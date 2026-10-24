@@ -116,8 +116,13 @@ export class Recommender {
       row.entry_bonus = hasPrior ? this.entryPoints * (work.light_entry ?? 0) / this.prior.light_entry_max : 0;
       row.entry_penalty = hasPrior ? work.entry_penalty ?? 0 : 0;
       row.ranking_score = row.combined === null ? null : row.combined + row.entry_bonus - row.entry_penalty;
+      if (favorite) row.favorite_role = work.characters.find((member) => member.id === favorite && member.favorite_eligible).role;
     }
     rows.sort((left, right) => {
+      if (favorite) {
+        const roleOrder = ROLES.indexOf(left.favorite_role) - ROLES.indexOf(right.favorite_role);
+        if (roleOrder !== 0) return roleOrder;
+      }
       for (const key of ['ranking_score', 'taste', 'behavior']) {
         const delta = roundSix(right[key] || 0) - roundSix(left[key] || 0);
         if (delta !== 0) return delta;

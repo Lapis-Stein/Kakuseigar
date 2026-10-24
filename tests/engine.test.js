@@ -115,6 +115,56 @@ test('unregistered behavior does not remove a favorite and eligibility is requir
   assert.deepEqual(engine.rank([], [], 'guest'), []);
 });
 
+function favoriteRolesFixture() {
+  const data = fixture();
+  for (const [index, role] of ['main', 'support', 'indirect'].entries()) {
+    const work = data.works[index];
+    work.taste.fun = index === 0 ? 1 : 4;
+    work.characters = [{ id: 'chosen', name: '指定人物', role, behavior: null, favorite_eligible: true }];
+  }
+  data.works[1].characters.push({ id: 'someone-else', name: '別の人物', role: 'main', behavior: { curious: 2, kind: 2 }, favorite_eligible: true });
+  return data;
+}
+
+test('favorite prioritizes the specified character role before higher match scores', () => {
+  const data = favoriteRolesFixture();
+  const rows = new Recommender(data).rank([['T1', 'a']], [], 'chosen');
+  assert.deepEqual(rows.map(row => row.work_id), ['A', 'B', 'C']);
+  assert.deepEqual(rows.map(row => row.favorite_role), ['main', 'support', 'indirect']);
+  assert.ok(rows[0].ranking_score < rows[1].ranking_score);
+  assert.ok(rows.every(row => row.entry_bonus === 0 && row.entry_penalty === 0 && row.ranking_score === row.combined));
+});
+
+test('a shown main role leaves support reachable and another character cannot promote it', () => {
+  const engine = new Recommender(favoriteRolesFixture());
+  assert.equal(engine.rank([['T1', 'a']], [], 'chosen')[0].work_id, 'A');
+  assert.deepEqual(engine.rank([['T1', 'a']], ['A'], 'chosen').map(row => row.work_id), ['B', 'C']);
+  assert.equal(engine.rank([['T1', 'a']], ['A', 'B'], 'chosen')[0].work_id, 'C');
+  assert.deepEqual(engine.rank([], ['A', 'B', 'C'], 'chosen'), []);
+});
+
+test('same favorite role uses existing match scores, then the session tie order', () => {
+  const data = favoriteRolesFixture();
+  data.works = data.works.slice(0, 2);
+  data.works[1].characters[0].role = 'main';
+  const engine = new Recommender(data, { tieOrder: ['A', 'B'] });
+  assert.deepEqual(engine.rank([['T1', 'a']], [], 'chosen').map(row => row.work_id), ['B', 'A']);
+  assert.deepEqual(engine.rank([], [], 'chosen').map(row => row.work_id), ['A', 'B']);
+  assert.deepEqual(new Recommender(data, { tieOrder: ['B', 'A'] }).rank([], [], 'chosen').map(row => row.work_id), ['B', 'A']);
+});
+
+test('ordinary recommendations do not acquire favorite role priority or change their scores', () => {
+  const data = favoriteRolesFixture();
+  const answers = [['T1', 'a']];
+  const ordinary = new Recommender(data).rank(answers);
+  assert.deepEqual(ordinary.map(row => row.work_id), ['B', 'C']);
+  assert.deepEqual(ordinary.map(row => row.ranking_score), [116, 100]);
+  assert.ok(ordinary.every(row => !Object.hasOwn(row, 'favorite_role')));
+  const swapped = structuredClone(data);
+  for (const [index, role] of ['indirect', 'main', 'support'].entries()) swapped.works[index].characters[0].role = role;
+  assert.deepEqual(new Recommender(swapped).rank(answers), ordinary);
+});
+
 test('all-skip rankings do not apply editorial adjustments; fixed tie order is honored', () => {
   const data = fixture();
   const engine = new Recommender(data, { tieOrder: ['C', 'B', 'A'] });
