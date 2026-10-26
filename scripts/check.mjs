@@ -1,9 +1,15 @@
 import { access, readFile, readdir } from 'node:fs/promises';
+import { isDeepStrictEqual } from 'node:util';
 import { validateRuntime } from '../src/engine.js';
+import { validateSnapshot } from '../src/public-stats.js';
 
 const root = new URL('../', import.meta.url);
 const data = JSON.parse(await readFile(new URL('data/runtime.json', root), 'utf8'));
 validateRuntime(data);
+const publicStats = JSON.parse(await readFile(new URL('data/public-stats.json', root), 'utf8'));
+if (!isDeepStrictEqual(publicStats, validateSnapshot(publicStats, data.works.map(work => work.id)))) {
+  throw new Error('Public statistics contain unexpected fields or work identifiers');
+}
 const config = JSON.parse(await readFile(new URL('data/presentation.json', root), 'utf8'));
 if (!config.dataset_version || config.narrator.id !== 'seiga') throw new Error('Invalid presentation configuration');
 const questionMoods = config.narrator.question_moods;
