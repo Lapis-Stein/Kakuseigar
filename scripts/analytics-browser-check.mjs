@@ -174,7 +174,7 @@ try {
   const first = (await quiz()).resultHistory[0];
   const recommendation = custom()[1];
   assert.equal(recommendation.name, 'work_recommended');
-  assert.equal(recommendation.params.work_id, first.workId);
+  assert.equal(recommendation.params.work_id, `work_${first.workId}`);
   assert.equal(recommendation.params.first_recommendation, 'yes');
   assert.equal(recommendation.params.answer_count, 1);
   assert.equal(recommendation.params.undo_count, 1);
@@ -188,6 +188,7 @@ try {
   await external(page.getByRole('link', { name: 'pixivで読む' }));
   await waitFor(() => custom().length === 3, 'First recommended work click');
   assert.equal(custom()[2].params.recommendation_context, 'recommended');
+  assert.equal(custom()[2].params.work_id, `work_${first.workId}`);
   assert.equal(custom()[2].params.first_work_open, 'yes');
   await click(page.locator('[data-action="history"]'));
   await external(page.getByRole('link', { name: 'pixivで読む' }));
@@ -205,6 +206,7 @@ try {
   await waitFor(() => custom().length === 4, 'Ranking click counted separately');
   assert.equal(custom()[3].params.recommendation_context, 'ranking');
   assert.equal(custom()[3].params.link_source, 'ranking_today');
+  assert.equal(custom()[3].params.work_id, `work_${rows[0].work_id}`);
   assert.equal(Object.hasOwn(custom()[3].params, 'first_work_open'), false);
   await external(page.locator('[data-stats-link^="today:"]').first());
   assert.equal(custom().length, 4, 'Repeated ranking clicks are limited within a document');

@@ -7,7 +7,7 @@ import { buildReports, snapshotFromReports, fetchPublicStats, exportPublicStats,
 
 const now = new Date('2026-10-31T15:05:00Z');
 const options = { accessToken: 'test-token-not-for-network', propertyId: '560779823',
-  collectionStartedOn: '2026-10-26', workIds: ['w01', 'w02'], now };
+  collectionStartedOn: '2026-10-26', workIds: ['01', '02'], now };
 function report(recommendations, entries = []) {
   return {
     dimensionHeaders: recommendations ? [{ name: 'customEvent:work_id' }] : [],
@@ -18,7 +18,7 @@ function report(recommendations, entries = []) {
   };
 }
 function batch() { return { reports: [report(false, [3]), report(false, [40]),
-  report(true, [['w01', 1]]), report(true, [['w01', 1]]), report(true, [['w01', 9], ['w02', 4]])] }; }
+  report(true, [['work_01', 1]]), report(true, [['work_01', 1]]), report(true, [['work_01', 9], ['work_02', 4]])] }; }
 const response = payload => new Response(JSON.stringify(payload), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
 test('calendar periods are JST and the calendar month is clamped to collection start', () => {
@@ -66,9 +66,22 @@ test('snapshot projects only approved counts and fills known zero counts', () =>
   assert.deepEqual(snapshot.visits, { today: 3, all_time: 40 });
   assert.equal(snapshot.day, '2026-11-01');
   assert.equal(snapshot.month, '2026-11');
-  assert.deepEqual(snapshot.first_recommendations.today, [{ work_id: 'w01', count: 1 }, { work_id: 'w02', count: 0 }]);
+  assert.deepEqual(snapshot.first_recommendations.today, [{ work_id: '01', count: 1 }, { work_id: '02', count: 0 }]);
   assert.deepEqual(Object.keys(snapshot), ['schema_version', 'status', 'generated_at', 'time_zone', 'collection_started_on', 'day', 'month', 'visits', 'first_recommendations']);
   assert.doesNotMatch(JSON.stringify(snapshot), /unknown-work|never publish|test-token/);
+});
+
+test('prefixed Analytics IDs preserve leading zeroes and exclude unapproved aliases', () => {
+  const entries = [['work_01', 2], ['work_1', 3], ['work_10', 4],
+    ['01', 90], ['1', 90], ['work_001', 90], ['work_99', 90], ['Work_01', 90]];
+  const reports = [report(false, [3]), report(false, [40]),
+    report(true, entries), report(true, entries), report(true, entries)];
+  const snapshot = snapshotFromReports({ ...options, workIds: ['01', '1', '10'], reports });
+  const expected = [{ work_id: '01', count: 2 }, { work_id: '1', count: 3 }, { work_id: '10', count: 4 }];
+  for (const period of ['today', 'month', 'all_time']) {
+    assert.deepEqual(snapshot.first_recommendations[period], expected);
+  }
+  assert.doesNotMatch(JSON.stringify(snapshot), /work_01|work_001|work_99|Work_01/);
 });
 
 test('complete empty reports are zero, missing headers or results are failures', () => {

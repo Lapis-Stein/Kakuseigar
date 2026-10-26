@@ -30,7 +30,7 @@
 
 - カスタムイベント共通：`analytics_version`、`dataset_version`、`app_version`。
 - 案内共通項目：`play_start_day`（開始した日本時間の日付）、`initial_set`（開始時の質問セットID）、`total_works`（その回の対象作品数）。
-- `work_id`：公開用データに存在する作品IDのみ。
+- `work_id`：公開用データに存在する作品IDに `work_` を付けて送信する（例：公開ID `01` → 送信値 `work_01`）。GA4で数字だけの値が数値として扱われ、先頭の0が失われることを防ぐ。
 - `recommendation_index`：その回の何作目か。1から始まる。
 - `recommendation_route`：通常質問からの `ordinary`、人物質問からの `favorite`。
 - `first_recommendation`：1作目なら文字列 `yes`、2作目以降は `no`。
@@ -100,7 +100,7 @@ GA4「管理 → データの表示 → カスタム定義」で、次のイベ�
 
 `scripts/export-public-stats.mjs` はNode.js 22の標準機能だけで動作します。GA4 Data APIの `batchRunReports` を1回呼び、訪問2期間と初回推薦3期間、計5レポートを取得します。公開URLに完全一致するイベントだけを対象とし、推薦は `eventName=work_recommended` かつ `customEvent:first_recommendation=yes` の `eventCount` を `customEvent:work_id` ごとに集計します。[batchRunReportsの仕様](https://developers.google.com/analytics/devguides/reporting/data/v1/rest/v1beta/properties/batchRunReports)
 
-公開JSONはスキーマ版、状態、生成日時、日本時間の日付・月、計測開始日、訪問回数、作品ID別の初回推薦回数だけです。作品IDは `data/runtime.json` の許可済みIDに限定し、GA4の生レポートや作者向けの分析を公開しません。認証情報も出力しません。
+公開JSONはスキーマ版、状態、生成日時、日本時間の日付・月、計測開始日、訪問回数、作品ID別の初回推薦回数だけです。集計時に `work_01` などの送信値を、`data/runtime.json` の許可済みIDとの対応表で `01` などの公開IDへ戻します。未知の値やprefixなしの別表記を推測で取り込みません。GA4の生レポート、作者向けの分析、認証情報は出力しません。
 
 認証失敗、期間・タイムゾーンの不一致、壊れた応答、行の欠落、サンプリング、しきい値による制限などでは更新を中止します。完全な正常応答で該当行がない場合だけ0件とし、全検証後にファイルを置き換えます。取得失敗で最後の正常な集計を壊さず、ワークフローも公開前に停止します。
 
@@ -121,7 +121,7 @@ GA4「管理 → データの表示 → カスタム定義」で、次のイベ�
 | `GCP_WIF_PROVIDER` | `projects/757229369493/locations/global/workloadIdentityPools/github-actions/providers/kakuseigar` |
 | `GCP_SERVICE_ACCOUNT` | `kakuseigar-stats-reader@kakuseigar-stats-560779823.iam.gserviceaccount.com` |
 
-`.github/workflows/update-public-stats.yml` は `main`・有効化済み・必要変数がすべてある場合だけ実行します。毎時23分（UTC基準）に、その実行が対象とする最新の `main` を検証・テストし、集計・ビルド後にサイト全体を公開します。生成した集計をリポジトリにコミットしません。
+`.github/workflows/update-public-stats.yml` は `main`・有効化済み・必要変数がすべてある場合だけ実行します。毎時00分（UTC基準）に、その実行が対象とする最新の `main` を検証・テストし、集計・ビルド後にサイト全体を公開します。生成した集計をリポジトリにコミットしません。
 
 Actionsへの移行後はpush直後の自動公開はなく、`main` の変更は次回の定期実行に含まれます。すぐに反映したい場合は、Actionsの「Update public statistics」から「Run workflow」を選び、ブランチ `main` で手動実行します。GA4からの取得に失敗した場合はその回の公開全体を中止するため、集計だけでなくアプリ本体も直前の公開内容を維持します。
 

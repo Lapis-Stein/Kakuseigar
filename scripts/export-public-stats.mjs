@@ -96,13 +96,18 @@ export function snapshotFromReports({ reports, workIds, collectionStartedOn, now
     && workIds.every(id => typeof id === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(id))
     && new Set(workIds).size === workIds.length, 'Invalid public work identifiers.');
   requireValue(Array.isArray(reports) && reports.length === 5, 'Incomplete report batch.');
+  // GA parses numeric-looking custom dimensions. Match the exact prefixed
+  // transport values to approved runtime IDs, preserving leading zeroes.
+  const publicWorkIds = new Map(workIds.map(id => [`work_${id}`, id]));
   const todayVisits = reportRows(reports[0], false)[0] ?? 0;
   const allVisits = reportRows(reports[1], false)[0] ?? 0;
   const recommendationRows = reports.slice(2).map(report => {
-    const counts = new Map();
+    const counts = new Map(), seen = new Set();
     for (const row of reportRows(report, true)) {
-      requireValue(!counts.has(row.work_id), 'Duplicate work rows in report.');
-      counts.set(row.work_id, row.count);
+      requireValue(!seen.has(row.work_id), 'Duplicate work rows in report.');
+      seen.add(row.work_id);
+      const publicId = publicWorkIds.get(row.work_id);
+      if (publicId !== undefined) counts.set(publicId, row.count);
     }
     // This is the sole public-data projection: never copy arbitrary GA fields.
     return workIds.map(work_id => ({ work_id, count: counts.get(work_id) ?? 0 }));

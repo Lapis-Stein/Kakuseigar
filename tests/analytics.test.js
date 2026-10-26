@@ -39,6 +39,7 @@ test('questions stay local; each recommendation carries only a bounded delta sum
   tracker.recommend(result());
   const first = events.at(-1);
   assert.equal(first.name, 'work_recommended');
+  assert.equal(first.params.work_id, 'work_01');
   assert.equal(first.params.first_recommendation, 'yes');
   assert.equal(first.params.question_count, 2);
   assert.equal(first.params.ordinary_question_count, 1);
@@ -54,6 +55,7 @@ test('questions stay local; each recommendation carries only a bounded delta sum
   tracker.questionShown('round-2:q2', 'ordinary');
   tracker.questionAction('answer');
   tracker.recommend(result(2, 'favorite'));
+  assert.equal(events.at(-1).params.work_id, 'work_02');
   assert.equal(events.at(-1).params.question_count, 1);
   assert.equal(events.at(-1).params.skip_count, 0);
   assert.equal(events.at(-1).params.first_recommendation, 'no');
@@ -68,7 +70,11 @@ test('reload, review and repeated recommendation cannot inflate counts', () => {
   state.resultHistory.push(result());
   assert.equal(tracker.recommend(result()), false);
   assert.equal(tracker.click('01', 'result', result()), true);
+  assert.equal(events.at(-1).params.work_id, 'work_01');
   assert.equal(tracker.click('01', 'history', result()), false);
+  const local = JSON.parse(store.getItem(ANALYTICS_STORAGE_KEY));
+  assert.equal(local.recommendations[0].workId, '01');
+  assert.deepEqual(local.opened, ['01']);
   const reload = fixture({ storage: store });
   assert.equal(reload.tracker.sync(state), true);
   assert.equal(reload.tracker.start(state), false);
@@ -77,6 +83,7 @@ test('reload, review and repeated recommendation cannot inflate counts', () => {
   assert.equal(reload.events.length, 0);
   reload.tracker.recommend(result(2));
   reload.tracker.click('02', 'history', result(2));
+  assert.deepEqual(reload.events.map(event => event.params.work_id), ['work_02', 'work_02']);
   assert.equal(reload.events.at(-1).params.first_work_open, 'no');
   assert.equal(events.filter(event => event.name === 'play_start').length, 1);
 });
@@ -94,6 +101,8 @@ test('ranking clicks are independent of recommended conversions and are source l
   assert.equal(events.at(-1).params.first_work_open, 'yes');
   assert.equal(events.at(-1).params.recommendation_context, 'recommended');
   assert.equal(events[0].params.recommendation_context, 'ranking');
+  assert.deepEqual(events.filter(event => event.params.work_id).map(event => event.params.work_id),
+    ['work_01', 'work_01', 'work_01', 'work_01']);
   assert.equal(Object.hasOwn(events[0].params, 'play_start_day'), false);
 });
 
@@ -235,7 +244,7 @@ test('blocked tag queues are bounded, do not retry, and never hold navigation', 
   const env = browser();
   const transport = createBrowserTransport({ ...browserOptions, ...env });
   transport.init();
-  for (let index = 0; index < 1000; index++) transport.emit('work_opened', { work_id: '01' });
+  for (let index = 0; index < 1000; index++) transport.emit('work_opened', { work_id: 'work_01' });
   env.scripts[0].onload();
   assert.equal(commands(env).filter(args => args[0] === 'event').length, 64);
   const failed = browser();

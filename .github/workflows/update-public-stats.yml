@@ -3,7 +3,7 @@ name: Update public statistics
 on:
   workflow_dispatch:
   schedule:
-    - cron: '23 * * * *'
+    - cron: '0 * * * *'
 
 # Activate only after the production collection date, GA4 dimensions and
 # read-only Google authentication have been configured. No credentials file or

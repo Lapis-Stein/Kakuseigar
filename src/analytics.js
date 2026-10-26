@@ -16,6 +16,8 @@ const integer = (value, max = MAX_COUNTER) => Number.isSafeInteger(value) && val
 const identifier = (value, fallback = 'none') => typeof value === 'string' && IDENTIFIER.test(value) ? value : fallback;
 const counters = () => Object.fromEntries(COUNTERS.map(key => [key, 0]));
 const unique = values => new Set(values).size === values.length;
+// Keep zero-padded catalog IDs textual in GA4; local state retains the catalog ID.
+const eventWorkId = id => `work_${id}`;
 
 export function japanDay(value = new Date()) {
   const date = new Date(value);
@@ -155,7 +157,7 @@ export function createTracker({ emit = () => {}, storage = null, now = () => new
       play.counts = counters();
       play.recommendations.push(item);
       save();
-      return send('work_recommended', { ...common(), work_id: item.workId,
+      return send('work_recommended', { ...common(), work_id: eventWorkId(item.workId),
         recommendation_index: item.index, recommendation_route: item.route,
         first_recommendation: item.index === 1 ? 'yes' : 'no', ...summary });
     },
@@ -166,7 +168,7 @@ export function createTracker({ emit = () => {}, storage = null, now = () => new
         if (rankingClicks.has(key)) return false;
         rankingClicks.add(key);
         return send('work_opened', { analytics_version: ANALYTICS_VERSION,
-          dataset_version: dataset, app_version: app, work_id: workId,
+          dataset_version: dataset, app_version: app, work_id: eventWorkId(workId),
           recommendation_context: 'ranking', link_source: source });
       }
       if (!RECOMMENDATION_SOURCES.has(source) || !play || play.opened.includes(workId)) return false;
@@ -176,7 +178,7 @@ export function createTracker({ emit = () => {}, storage = null, now = () => new
       const first = play.opened.length === 0;
       play.opened.push(workId);
       save();
-      return send('work_opened', { ...common(), work_id: workId,
+      return send('work_opened', { ...common(), work_id: eventWorkId(workId),
         recommendation_context: 'recommended', link_source: source,
         recommendation_index: shown.index, recommendation_route: shown.route,
         first_recommendation: shown.index === 1 ? 'yes' : 'no', first_work_open: first ? 'yes' : 'no' });
