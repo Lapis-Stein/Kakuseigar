@@ -94,6 +94,29 @@ test('complete empty reports are zero, missing headers or results are failures',
   assert.throws(() => snapshotFromReports({ ...options, reports }));
 });
 
+test('a new property may omit all headers and rows only in a valid unrestricted empty report', () => {
+  const reports = Array.from({ length: 5 }, () => ({
+    kind: 'analyticsData#runReport', metadata: { timeZone: 'Asia/Tokyo' },
+  }));
+  const snapshot = snapshotFromReports({ ...options, reports });
+  assert.equal(snapshot.visits.today, 0);
+  assert.equal(snapshot.visits.all_time, 0);
+  assert.ok(Object.values(snapshot.first_recommendations).flat().every(row => row.count === 0));
+  for (const change of [
+    report => delete report.kind,
+    report => report.metricHeaders = null,
+    report => report.rowCount = 1,
+    report => report.rows = [{ metricValues: [{ value: '1' }] }],
+    report => report.metadata.subjectToThresholding = true,
+    report => report.metadata.emptyReason = 'restricted',
+    report => report.metadata.timeZone = 'UTC',
+  ]) {
+    const invalid = structuredClone(reports);
+    change(invalid[0]);
+    assert.throws(() => snapshotFromReports({ ...options, reports: invalid }));
+  }
+});
+
 test('metric diagnostics expose only bounded fixed schema labels and report kind', () => {
   for (const [index, type, kind, name] of [
     [0, 'TYPE_FLOAT', 'visits', 'sessions'],

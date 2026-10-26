@@ -78,6 +78,10 @@ function reportRows(report, recommendations) {
     && !(meta.samplingMetadatas?.length) && !(meta.dataTruncationReasons?.length)
     && !(meta.schemaRestrictionResponse?.activeMetricRestrictions?.length) && !meta.emptyReason,
   'The report is incomplete or restricted; the previous snapshot has been preserved.');
+  // A newly collecting property can return a complete empty report with only
+  // kind and metadata. Accept this exact observed shape after restriction checks.
+  if (report.kind === 'analyticsData#runReport' && report.metricHeaders === undefined
+    && report.dimensionHeaders === undefined && report.rows === undefined && report.rowCount === undefined) return [];
   const dimensions = report.dimensionHeaders ?? [];
   requireValue(Array.isArray(dimensions) && dimensions.length === (recommendations ? 1 : 0)
     && (!recommendations || dimensions[0]?.name === 'customEvent:work_id'), 'Unexpected report dimensions.');
