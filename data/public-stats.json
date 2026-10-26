@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "status": "unconfigured",
+  "generated_at": null,
+  "time_zone": "Asia/Tokyo",
+  "collection_started_on": null,
+  "day": null,
+  "month": null,
+  "visits": { "today": null, "all_time": null },
+  "first_recommendations": { "today": [], "month": [], "all_time": [] }
+}

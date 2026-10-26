@@ -4,6 +4,9 @@ import { createStorage, fingerprint } from './storage.js?v=20261023-1';
 import { QuestionPortraits } from './portraits.js';
 import { NarratorInteraction, NARRATOR_THRESHOLDS } from './narrator-interaction.js';
 import { shareWork, shareCompletion, shareRobot } from './sharing.js?v=20261025-2';
+import { createAnalytics } from './analytics.js?v=20261026-1';
+import { createPublicStats } from './public-stats.js?v=20261026-1';
+import { ANALYTICS_CONFIG } from './analytics-config.js';
 
 const app = document.querySelector('#app');
 const notice = document.querySelector('#notice');
@@ -11,6 +14,7 @@ const toastElement = document.querySelector('#toast');
 const storage = createStorage();
 const narratorStorage = createStorage(undefined, 'kakuseigar:narrator:v1');
 let data, presentation, session;
+let analytics, publicStats;
 let questionPortraits;
 let narratorInteraction;
 let noticeText = '';
@@ -39,6 +43,17 @@ function button(text, onClick, style = 'primary-button', attrs = {}) {
 function externalLink(text, href, style = 'primary-button') {
   return el('a', { href, className: style, target: '_blank', rel: 'noopener noreferrer' }, text,
     el('span', { 'aria-hidden': 'true' }, ' ↗'), el('span', { className: 'sr-only' }, '（新しいタブで開きます）'));
+}
+
+// Statistics must never delay navigation or interrupt the guide.
+function recordMetric(method, ...args) {
+  try { analytics?.[method](...args); } catch { /* Measurement is optional. */ }
+}
+
+function workLink(work, source, result, style = 'primary-button') {
+  const link = externalLink('pixivで読む', work.pixiv_url, style);
+  link.addEventListener('click', () => recordMetric('click', work.id, source, result));
+  return link;
 }
 
 function toast(text) {
@@ -172,6 +187,7 @@ function reset() {
   storage.clear();
   narratorStorage.clear();
   narratorInteraction.reset();
+  recordMetric('reset');
   noticeText = '';
   session = new QuizSession(data, presentation);
   questionPortraits.reset();
@@ -190,7 +206,10 @@ function welcome() {
       button('続きからお話しする →', () => go(activeRoute())), button('最初から遊ぶ', reset, 'text-button')));
   } else {
     const token = session.state.activeStepId;
-    content.push(button('青娥に聞いてもらう →', () => action(t => session.start(t), token, { replace: false })));
+    content.push(button('青娥に聞いてもらう →', () => action(t => {
+      session.start(t);
+      recordMetric('start', session.state);
+    }, token, { replace: false })));
   }
   content.push(el('p', { className: 'intro-note' }, 'ご紹介するのは、pixivで読める東方二次創作小説です。'));
   return stage('idle', 'お探しのお話があるのでしょう？\n少し聞かせてくださいな。', content, 'welcome');
@@ -203,11 +222,11 @@ function question() {
   const progress = el('div', { className: 'progress-track', role: 'progressbar', 'aria-label': '今回の質問の進み具合', 'aria-valuemin': 0, 'aria-valuemax': q.roundTotal, 'aria-valuenow': q.ordinal - 1 },
     el('span', { className: 'progress-fill', style: `width:${(q.ordinal - 1) / q.roundTotal * 100}%` }));
   const options = el('div', { className: 'options', 'aria-label': '回答をひとつ選ぶ' }, ...q.options.map((o, index) =>
-    button('', () => action(t => session.answer(o.id, t), token), 'option-button', { 'data-option': o.id })));
+    button('', () => action(t => { session.answer(o.id, t); recordMetric('questionAction', 'answer'); }, token), 'option-button', { 'data-option': o.id })));
   [...options.children].forEach((node, index) => node.append(el('span', { className: 'option-letter', 'aria-hidden': 'true' }, String.fromCharCode(65 + index)), el('span', {}, q.options[index].text)));
   const tools = el('div', { className: 'question-tools' });
-  if (q.allowSkip) tools.append(button('今は決められない', () => action(t => session.answer(null, t), token), 'text-button'));
-  if (q.canUndo) tools.append(button('ひとつ前の回答を直す', () => action(t => session.undo(t), token), 'text-button'));
+  if (q.allowSkip) tools.append(button('今は決められない', () => action(t => { session.answer(null, t); recordMetric('questionAction', 'skip'); }, token), 'text-button'));
+  if (q.canUndo) tools.append(button('ひとつ前の回答を直す', () => action(t => { session.undo(t); recordMetric('questionAction', 'undo'); }, token), 'text-button'));
   const content = [el('div', { className: 'progress-row' }, el('p', { className: 'eyebrow' }, session.state.round.number === 1 ? 'まずは、お話を少し' : 'もう少し聞かせてください'),
     el('p', { className: 'question-count' }, `${q.ordinal} / ${q.roundTotal} 問目`)), progress, title(q.text, 'question-title'), options, tools];
   const count = session.state.resultHistory.length;
@@ -226,7 +245,7 @@ function favorite() {
   return stage(mood, own ? 'そういえば、\n私のお話はいかがかしら。' : 'そういえば、\nこんな方のお話もありますよ。', [
     el('p', { className: 'eyebrow' }, '少しだけ、寄り道'), title(own ? '私の活躍が\n見たいのかしら？' : `${char?.name || 'この方'}の活躍を\n見てみたい？`),
     el('div', { className: 'options' }, ...choices.map(([answer, label], index) => {
-      const choice = button('', () => action(t => session.answerFavorite(answer, t), token), 'option-button', { 'data-favorite-answer': answer });
+      const choice = button('', () => action(t => { session.answerFavorite(answer, t); recordMetric('questionAction', 'favorite_answer'); }, token), 'option-button', { 'data-favorite-answer': answer });
       choice.append(el('span', { className: 'option-letter', 'aria-hidden': 'true' }, String.fromCharCode(65 + index)), el('span', {}, label));
       return choice;
     }))], 'favorite');
@@ -283,7 +302,8 @@ function resultView(result, historical) {
     el('article', { className: 'work-card' }, el('p', { className: 'work-number' }, 'あなたに差し出す、一編'), title(work.title, 'work-title'),
       el('div', { className: `work-preview${art ? ' has-art' : ''}` }, art,
         el('div', { className: 'work-invitation' }, result.reason ? el('p', { className: 'reason' }, result.reason) : null,
-          externalLink('pixivで読む', work.pixiv_url), el('p', { className: 'fine-print' }, '新しいタブで開きます')), caption(work)),
+          workLink(work, historical ? 'history' : 'result', result), el('p', { className: 'fine-print' }, '新しいタブで開きます')), caption(work)),
+      publicStats?.footprint(work.id),
       cast.length ? el('div', { className: 'chip-list', 'aria-label': '登場人物' }, ...cast.map(c => el('span', { className: 'chip' }, c.name))) : null)];
   if (result.isLast) content.push(el('div', { className: 'completion' },
     el('div', { role: 'status' }, el('strong', {}, '制覇おめでとう！'), el('p', {}, `公開${result.totalWorks}作品をご案内しました。`)),
@@ -307,7 +327,7 @@ function historyView() {
       const work = data.works.find(w => w.id === result.workId);
       return el('li', { className: 'history-item' }, el('span', { className: 'work-number', 'aria-hidden': 'true' }, String(result.introducedCount).padStart(2, '0')),
         el('div', {}, button(work.title, () => go('#/review/' + result.resultId), 'history-title'),
-          externalLink('pixivで読む', work.pixiv_url, 'text-button')));
+          workLink(work, 'history', result, 'text-button')));
     })),
     !session.state.resultHistory.length ? el('p', { className: 'empty-state' }, 'お薦めのお話が、ここに並んでいきます。') : null,
     button('今の案内に戻る', () => go(historyReturn === '#/start' ? '#/start' : activeRoute()), 'secondary-button')], 'history');
@@ -327,8 +347,27 @@ function about() {
     externalLink('東方Projectの二次創作ガイドライン', 'https://touhou-project.news/guideline/', 'text-button'),
     el('p', {}, 'あなたの人格や、似ているキャラクターを判定するものではありません。読みたい場面や、つい選んでしまう考え方から、お話の入口を探します。'),
     el('p', {}, '作品はpixivでお読みいただけます。「いいえ」で別のお話を探せますし、前に薦められた作品も紹介履歴から見返せます。'),
-    el('p', { className: 'fine-print' }, '回答と進行はこのブラウザーのタブ内で扱い、アプリから外部へ送信しません。タブを閉じた後の再開は保証されません。外部リンクを開くと各サービスへ移動します。'),
+    el('p', { className: 'fine-print' }, '回答と進行はこのブラウザーのタブ内に保存します。タブを閉じた後の再開は保証されません。外部リンクを開くと各サービスへ移動します。'),
+    el('p', { className: 'fine-print' }, '案内の改善と公開集計のため、Google アナリティクスを使用します。訪問情報、案内の開始、紹介した作品と順番、本文リンクの利用、問数やスキップ数などの概要を送信します。選んだ回答の内容や回答履歴一式は送信しません。質問の操作はタブ内で集計し、作品紹介の際に概要をまとめます。'),
+    el('p', { className: 'fine-print' }, 'Google アナリティクスはCookieなどを使って訪問を集計します。公開するのは訪問回数と、各回で最初に紹介した作品の集計です。人数・読了数・作品の評価を示すものではなく、計測できた範囲の記録です。'),
+    externalLink('Googleによるデータの利用について', 'https://policies.google.com/technologies/partner-sites?hl=ja', 'text-button'),
+    button(analytics?.enabled ? 'このブラウザーでのアクセス解析を停止する' : 'このブラウザーでのアクセス解析を有効にする', () => {
+      analytics?.setEnabled(!analytics.enabled);
+      render({ preserveScroll: true });
+    }, 'text-button'),
+    el('p', { className: 'fine-print', role: 'status' },
+      `アクセス解析は${analytics?.enabled ? '有効' : '停止中'}です。` +
+      (analytics?.preferenceScope === 'page' ? '設定を保存できないため、このページを開いている間だけ有効です。' :
+        analytics?.preferenceScope === 'tab' ? '設定はこのタブの間だけ保存されます。' : '')),
     el('div', { className: 'button-row' }, button('案内に戻る', () => go(activeRoute()), 'secondary-button'))], 'about');
+}
+
+function statistics() {
+  return stage('idle', 'これまで、どんなお話を\nお渡ししてきたでしょうね。', [
+    el('p', { className: 'eyebrow' }, 'みんなの案内記録'), title('みんなへのお薦め'),
+    publicStats?.rankings(),
+    button('案内に戻る', () => go(activeRoute()), 'secondary-button'),
+  ], 'statistics');
 }
 
 function robotAchievement() {
@@ -354,7 +393,7 @@ function render(viewOptions = {}) {
   } else if (route === '#/achievement/robot') {
     route = activeRoute(); history.replaceState(null, '', route);
   }
-  if (!robotFinished && session.state.phase === 'favorite' && !['#/favorite', '#/history', '#/about'].includes(route) && !route.startsWith('#/review/')) {
+  if (!robotFinished && session.state.phase === 'favorite' && !['#/favorite', '#/history', '#/about', '#/stats'].includes(route) && !route.startsWith('#/review/')) {
     route = activeRoute(); history.replaceState(null, '', route);
   }
   if (['#/play', '#/favorite', '#/characters', '#/ending'].includes(route)) {
@@ -375,6 +414,7 @@ function render(viewOptions = {}) {
   else if (route === '#/favorite') node = favorite();
   else if (route === '#/ending') node = ending();
   else if (route === '#/about') node = about();
+  else if (route === '#/stats') node = statistics();
   else if (route === '#/play') node = question();
   else node = welcome();
   app.replaceChildren(node);
@@ -382,8 +422,14 @@ function render(viewOptions = {}) {
   if (shownResult) {
     session.commitResult(shownResult.resultId, session.state.activeStepId);
     persist();
+    recordMetric('recommend', shownResult);
     // Buttons were built with the preceding token; rebuild with the committed step.
     return render(viewOptions);
+  }
+  if (node.dataset.screen === 'question') {
+    recordMetric('questionShown', `ordinary:${session.state.round.number}:${session.currentQuestion()?.id}`, 'ordinary');
+  } else if (node.dataset.screen === 'favorite') {
+    recordMetric('questionShown', `favorite:${session.state.round.number}:${session.state.favoriteCharacterId}`, 'favorite');
   }
   const introduced = robotFinished ? [] : [presentation.narrator.id, ...castIds,
     ...(route === '#/favorite' && session.state.phase === 'favorite' ? [session.state.favoriteCharacterId] : [])];
@@ -433,8 +479,15 @@ async function load() {
     if (!restored) narratorStorage.clear();
     narratorInteraction = new NarratorInteraction({ datasetVersion: presentation.dataset_version, saved: restored ? narratorStorage.read() : null });
     persistNarrator();
-    if (!location.hash || (location.hash !== '#/about' && !session.state.started)) history.replaceState(null, '', activeRoute());
+    analytics ||= createAnalytics({ ...ANALYTICS_CONFIG, datasetVersion: presentation.dataset_version,
+      workIds: data.works.map(work => work.id) });
+    recordMetric('sync', session.state);
+    publicStats ||= createPublicStats({ works: data.works,
+      onWorkClick: (workId, period) => recordMetric('click', workId, period === 'today' ? 'ranking_today' : 'ranking_all_time') });
+    document.querySelector('#visit-counter').replaceChildren(publicStats.counter());
+    if (!location.hash || (!['#/about', '#/stats'].includes(location.hash) && !session.state.started)) history.replaceState(null, '', activeRoute());
     render();
+    void publicStats.load();
   } catch (error) {
     console.error('Unable to start the guide', error);
     app.replaceChildren(el('section', { className: 'scene empty-state' }, title('案内を読み込めませんでした'),
@@ -446,6 +499,7 @@ document.querySelector('.skip-link')?.addEventListener('click', event => { event
 document.querySelector('#footer')?.append(el('span', {}, 'Kakuseigar'),
   button('これまでのお薦め', () => session && openHistory(), 'text-button', { 'data-action': 'history', disabled: true }),
   el('a', { href: '#/about' }, 'このサイトについて'),
+  el('a', { href: '#/stats' }, 'みんなへのお薦め'),
   button('最初から遊ぶ', () => session && reset(), 'text-button'));
 window.addEventListener('hashchange', () => { try { render(); } catch { go(activeRoute(), true); } });
 window.addEventListener('popstate', () => { if (session) render(); });
