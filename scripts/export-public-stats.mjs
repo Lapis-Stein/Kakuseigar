@@ -85,7 +85,16 @@ function reportRows(report, recommendations) {
     && report.metricHeaders[0]?.name === (recommendations ? 'eventCount' : 'sessions')
     && report.metricHeaders[0]?.type === 'TYPE_INTEGER';
   if (!validMetrics) {
-    throw new StatsExportError(`Unexpected report metrics (${recommendations ? 'first_recommendations' : 'visits'}): ${metricHeaderDiagnostic(report.metricHeaders)}.`);
+    const shape = {
+      missingMetrics: report.metricHeaders === undefined,
+      missingDimensions: report.dimensionHeaders === undefined,
+      missingRows: report.rows === undefined,
+      emptyRows: Array.isArray(report.rows) && report.rows.length === 0,
+      missingRowCount: report.rowCount === undefined,
+      zeroRowCount: report.rowCount === 0,
+      reportKind: report.kind === 'analyticsData#runReport',
+    };
+    throw new StatsExportError(`Unexpected report metrics (${recommendations ? 'first_recommendations' : 'visits'}): ${metricHeaderDiagnostic(report.metricHeaders)}. Shape: ${JSON.stringify(shape)}`);
   }
   const rows = report.rows ?? [];
   requireValue(Array.isArray(rows) && rows.length <= REPORT_LIMIT, 'Invalid report rows.');

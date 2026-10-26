@@ -101,8 +101,10 @@ test('metric diagnostics expose only bounded fixed schema labels and report kind
   ]) {
     const payload = batch();
     payload.reports[index].metricHeaders[0].type = type;
-    assert.throws(() => snapshotFromReports({ ...options, reports: payload.reports }), {
-      message: `Unexpected report metrics (${kind}): [{"name":"${name}","type":"${type}"}].`,
+    assert.throws(() => snapshotFromReports({ ...options, reports: payload.reports }), error => {
+      assert.ok(error.message.startsWith(`Unexpected report metrics (${kind}): [{"name":"${name}","type":"${type}"}]. Shape: `));
+      assert.ok(Object.values(JSON.parse(error.message.split(' Shape: ')[1])).every(value => typeof value === 'boolean'));
+      return true;
     });
   }
   const payload = batch();
@@ -113,7 +115,7 @@ test('metric diagnostics expose only bounded fixed schema labels and report kind
   assert.throws(() => snapshotFromReports({ ...options, reports: payload.reports }), error => {
     assert.match(error.message, /visits.*redacted.*additional headers omitted/);
     assert.doesNotMatch(error.message, /private|test-token|987654321/);
-    assert.ok(error.message.length < 250);
+    assert.ok(error.message.length < 500);
     return true;
   });
 });
