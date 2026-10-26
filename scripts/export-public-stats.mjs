@@ -7,6 +7,11 @@ const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const MAX_RESPONSE_BYTES = 1024 * 1024;
 const REPORT_LIMIT = 10000;
 const TIME_ZONE = 'Asia/Tokyo';
+const DIAGNOSTIC_METRIC_NAMES = new Set(['sessions', 'eventCount']);
+const DIAGNOSTIC_METRIC_TYPES = new Set(['METRIC_TYPE_UNSPECIFIED', 'TYPE_UNSPECIFIED',
+  'TYPE_INTEGER', 'TYPE_FLOAT', 'TYPE_SECONDS', 'TYPE_MILLISECONDS', 'TYPE_MINUTES',
+  'TYPE_HOURS', 'TYPE_STANDARD', 'TYPE_CURRENCY', 'TYPE_FEET', 'TYPE_MILES',
+  'TYPE_METERS', 'TYPE_KILOMETERS']);
 
 export class StatsExportError extends Error {}
 const requireValue = (condition, message) => { if (!condition) throw new StatsExportError(message); };
@@ -54,6 +59,17 @@ function count(value) {
   return result;
 }
 
+function metricHeaderDiagnostic(value) {
+  if (!Array.isArray(value)) return '[missing or invalid headers]';
+  const selected = value.slice(0, 3).map(header => ({
+    name: header?.name === undefined ? '[missing]' : DIAGNOSTIC_METRIC_NAMES.has(header.name) ? header.name : '[redacted]',
+    type: header?.type === undefined ? '[missing]' : DIAGNOSTIC_METRIC_TYPES.has(header.type) ? header.type : '[redacted]',
+  }));
+  // Only fixed schema names/types are diagnostic output. Never echo arbitrary
+  // response strings, metric values, credentials, or additional report fields.
+  return JSON.stringify(selected) + (value.length > 3 ? ' [additional headers omitted]' : '');
+}
+
 function reportRows(report, recommendations) {
   requireValue(object(report) && object(report.metadata), 'Missing report metadata.');
   const meta = report.metadata;
@@ -65,9 +81,12 @@ function reportRows(report, recommendations) {
   const dimensions = report.dimensionHeaders ?? [];
   requireValue(Array.isArray(dimensions) && dimensions.length === (recommendations ? 1 : 0)
     && (!recommendations || dimensions[0]?.name === 'customEvent:work_id'), 'Unexpected report dimensions.');
-  requireValue(Array.isArray(report.metricHeaders) && report.metricHeaders.length === 1
+  const validMetrics = Array.isArray(report.metricHeaders) && report.metricHeaders.length === 1
     && report.metricHeaders[0]?.name === (recommendations ? 'eventCount' : 'sessions')
-    && report.metricHeaders[0]?.type === 'TYPE_INTEGER', 'Unexpected report metrics.');
+    && report.metricHeaders[0]?.type === 'TYPE_INTEGER';
+  if (!validMetrics) {
+    throw new StatsExportError(`Unexpected report metrics (${recommendations ? 'first_recommendations' : 'visits'}): ${metricHeaderDiagnostic(report.metricHeaders)}.`);
+  }
   const rows = report.rows ?? [];
   requireValue(Array.isArray(rows) && rows.length <= REPORT_LIMIT, 'Invalid report rows.');
   // Protocol buffers may omit a zero rowCount, but never a nonzero one.

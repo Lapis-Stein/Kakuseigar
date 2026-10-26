@@ -94,6 +94,30 @@ test('complete empty reports are zero, missing headers or results are failures',
   assert.throws(() => snapshotFromReports({ ...options, reports }));
 });
 
+test('metric diagnostics expose only bounded fixed schema labels and report kind', () => {
+  for (const [index, type, kind, name] of [
+    [0, 'TYPE_FLOAT', 'visits', 'sessions'],
+    [2, 'TYPE_UNSPECIFIED', 'first_recommendations', 'eventCount'],
+  ]) {
+    const payload = batch();
+    payload.reports[index].metricHeaders[0].type = type;
+    assert.throws(() => snapshotFromReports({ ...options, reports: payload.reports }), {
+      message: `Unexpected report metrics (${kind}): [{"name":"${name}","type":"${type}"}].`,
+    });
+  }
+  const payload = batch();
+  payload.reports[0].metricHeaders = Array.from({ length: 20 }, () => ({
+    name: 'private-metric-identifier', type: options.accessToken,
+    value: '987654321', arbitrary: 'private-response-value',
+  }));
+  assert.throws(() => snapshotFromReports({ ...options, reports: payload.reports }), error => {
+    assert.match(error.message, /visits.*redacted.*additional headers omitted/);
+    assert.doesNotMatch(error.message, /private|test-token|987654321/);
+    assert.ok(error.message.length < 250);
+    return true;
+  });
+});
+
 test('restricted, sampled, truncated and wrong-timezone reports cannot replace counts', () => {
   const changes = [
     r => r.metadata.subjectToThresholding = true,

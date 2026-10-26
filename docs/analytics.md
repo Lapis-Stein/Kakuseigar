@@ -1,6 +1,6 @@
 # アクセス解析と公開集計
 
-この文書は実装仕様と有効化の手順です。計測コードの本番公開と定期集計の有効化は別の作業であり、実装だけでは集計を開始しません。初期の公開データは準備中の状態です。導入前の訪問・推薦は復元できません。
+この文書は実装仕様、導入状況と有効化の手順です。2026-10-26に計測コードを本番公開済みです（`main` の `724f132`、[公開実行の成功記録](https://github.com/Lapis-Stein/Kakuseigar/actions/runs/40287180572)）。初回の定期集計用ワークフローはGoogleへの認証に成功しましたが、集計応答の指標型検証で停止しており、公開集計は準備中です。導入前の訪問・推薦は復元できません。
 
 測定IDは `G-LX9EPBLR4G`、GA4プロパティIDは `560779823` です。これらは公開してよい識別子で、認証情報ではありません。プロパティのタイムゾーンは `Asia/Tokyo`、拡張計測機能はオフであることを確認済みです。
 
@@ -115,9 +115,9 @@ GA4「管理 → データの表示 → カスタム定義」で、次のイベ�
 
 | リポジトリ変数 | 設定値 |
 | --- | --- |
-| `PUBLIC_STATS_ENABLED` | 準備後に `true` |
+| `PUBLIC_STATS_ENABLED` | `true` |
 | `GA4_PROPERTY_ID` | `560779823` |
-| `GA4_COLLECTION_STARTED_ON` | 実際の計測開始日、`YYYY-MM-DD` |
+| `GA4_COLLECTION_STARTED_ON` | `2026-10-26` |
 | `GCP_WIF_PROVIDER` | `projects/757229369493/locations/global/workloadIdentityPools/github-actions/providers/kakuseigar` |
 | `GCP_SERVICE_ACCOUNT` | `kakuseigar-stats-reader@kakuseigar-stats-560779823.iam.gserviceaccount.com` |
 
@@ -131,9 +131,11 @@ GitHubの定期実行は遅延や実行の欠落があり、公開リポジト�
 
 更新予定が1時間ごとでも、GA4の処理とGitHubの実行には遅れがあり、リアルタイム表示ではありません。直近の件数は後で増減する可能性があります。手動・別経路でサイトを公開する場合も、稼働中の正常な集計を初期の準備中JSONで上書きしないようにします。[GA4のデータ更新について](https://support.google.com/analytics/answer/11198161?hl=ja)
 
-### Google側の設定記録
+### 導入・設定記録
 
-2026-10-26時点で、請求先を紐付けずに以下を作成・保存し、管理画面で確認しています。GitHubの変数登録、PagesのActionsへの移行、本番API通信の確認は未実施です。この設定記録は、定期集計の稼働を示すものではありません。
+2026-10-26時点で、請求先を紐付けずに以下のGoogle側設定を作成・保存し、管理画面で確認しています。GitHubにも上表の5変数を登録済みです。Pagesの公開元はGitHub Actionsへ移行し、公開対象を `main` のみに設定しています。集計の定期実行は毎時00分です。
+
+[初回の集計実行](https://github.com/Lapis-Stein/Kakuseigar/actions/runs/40287540781)はWIF認証に成功し、集計応答の指標型検証で停止しました。原因を確認中で、公開集計の更新成功はまだ確認していません。停止した実行ではサイトを再公開せず、先に公開した計測コードと準備中の集計表示を維持しています。
 
 | 項目 | 確認した設定 |
 | --- | --- |
