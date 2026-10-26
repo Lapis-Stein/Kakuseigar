@@ -34,43 +34,49 @@ function object(value) {
 export function validateSnapshot(input, workIds) {
   const allowed = new Set(workIds);
   const fail = () => { throw new TypeError('Invalid public statistics'); };
-  if (!object(input) || input.schema_version !== 1 || input.time_zone !== TIME_ZONE
+  if (!object(input) || input.schema_version !== 2 || input.time_zone !== TIME_ZONE
       || !['ready', 'unconfigured'].includes(input.status)
-      || !object(input.visits) || !object(input.first_recommendations)
+      || !object(input.visits) || !object(input.first_recommendations) || !object(input.work_opens)
       || !isCount(input.visits.today) || !isCount(input.visits.all_time)) fail();
-  const rows = {};
-  for (const period of ['today', 'month', 'all_time']) {
-    const raw = input.first_recommendations[period];
-    if (!Array.isArray(raw) || raw.length > MAX_ROWS) fail();
-    const seen = new Set();
-    rows[period] = [];
-    for (const row of raw) {
-      if (!object(row) || typeof row.work_id !== 'string' || row.work_id.length > 100
-          || seen.has(row.work_id) || row.count === null || !isCount(row.count)) fail();
-      seen.add(row.work_id);
-      if (allowed.has(row.work_id)) rows[period].push({ work_id: row.work_id, count: row.count });
+  const groups = {};
+  for (const [group, periods] of [['first_recommendations', ['recent', 'month', 'all_time']], ['work_opens', ['recent', 'all_time']]]) {
+    const rows = groups[group] = {};
+    for (const period of periods) {
+      const raw = input[group][period];
+      if (!Array.isArray(raw) || raw.length > MAX_ROWS) fail();
+      const seen = new Set();
+      rows[period] = [];
+      for (const row of raw) {
+        if (!object(row) || typeof row.work_id !== 'string' || row.work_id.length > 100
+            || seen.has(row.work_id) || row.count === null || !isCount(row.count)) fail();
+        seen.add(row.work_id);
+        if (allowed.has(row.work_id)) rows[period].push({ work_id: row.work_id, count: row.count });
+      }
     }
   }
   if (input.status === 'unconfigured') {
     if (input.generated_at !== null || input.collection_started_on !== null || input.day !== null
-        || input.month !== null || input.visits.today !== null || input.visits.all_time !== null
-        || Object.values(input.first_recommendations).some(value => !Array.isArray(value) || value.length)) fail();
+        || input.month !== null || input.recent_started_on !== null || input.visits.today !== null || input.visits.all_time !== null
+        || [input.first_recommendations, input.work_opens].some(group => Object.values(group).some(value => !Array.isArray(value) || value.length))) fail();
     return {
-      schema_version: 1, status: 'unconfigured', generated_at: null, time_zone: TIME_ZONE,
-      collection_started_on: null, day: null, month: null,
-      visits: { today: null, all_time: null }, first_recommendations: rows,
+      schema_version: 2, status: 'unconfigured', generated_at: null, time_zone: TIME_ZONE,
+      collection_started_on: null, day: null, month: null, recent_started_on: null,
+      visits: { today: null, all_time: null }, ...groups,
     };
   }
   if (typeof input.generated_at !== 'string'
       || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(input.generated_at)
       || !Number.isFinite(Date.parse(input.generated_at)) || !isDay(input.generated_at.slice(0, 10)) || !isDay(input.collection_started_on)
-      || !isDay(input.day) || input.month !== input.day.slice(0, 7)
+      || !isDay(input.day) || !isDay(input.recent_started_on) || input.month !== input.day.slice(0, 7)
       || input.day < input.collection_started_on || jstCalendar(input.generated_at).day < input.day) fail();
+  const sevenDaysStart = new Date(Date.parse(`${input.day}T00:00:00Z`) - 6 * DAY_MS).toISOString().slice(0, 10);
+  if (input.recent_started_on !== (sevenDaysStart < input.collection_started_on ? input.collection_started_on : sevenDaysStart)) fail();
   return {
-    schema_version: 1, status: 'ready', generated_at: input.generated_at, time_zone: TIME_ZONE,
+    schema_version: 2, status: 'ready', generated_at: input.generated_at, time_zone: TIME_ZONE,
     collection_started_on: input.collection_started_on, day: input.day, month: input.month,
+    recent_started_on: input.recent_started_on,
     visits: { today: input.visits.today, all_time: input.visits.all_time },
-    first_recommendations: rows,
+    ...groups,
   };
 }
 
@@ -128,10 +134,11 @@ async function readBounded(response) {
 }
 
 export function createPublicStats({ works, fetcher = globalThis.fetch, now = () => new Date(),
-  document = globalThis.document, onWorkClick = () => {} } = {}) {
+  document = globalThis.document, workArtByWork = {}, onWorkSelect = () => {} } = {}) {
   const workMap = new Map(works.map(work => [work.id, work]));
   const slots = new Set();
   let snapshot = null, state = 'loading', request = null, calendarTimer = null;
+  let selectedMetric = 'recommendations', rankingId = 0;
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -163,53 +170,109 @@ export function createPublicStats({ works, fetcher = globalThis.fetch, now = () 
     node.append(values, meta(status), el('p', 'stats-meta', `${snapshot.collection_started_on} からの訪問回数です。`));
   }
 
-  function drawRanking(period, status) {
+  function drawRanking(metric, period, status) {
     const section = el('section', 'stats-ranking');
-    section.append(el('h2', 'stats-heading', period === 'today' ? '本日のお薦めランキング' : '今までのお薦めランキング'));
+    const heading = period === 'recent' ? '最近のお薦め' : '今まで';
+    section.append(el('h2', 'stats-heading', heading));
     if (!status.ready) { section.append(el('p', 'stats-empty', placeholder())); return section; }
-    if (period === 'today' && !status.currentDay) {
-      section.append(el('p', 'stats-empty', '本日分の集計を待っています。'));
-      return section;
-    }
-    const rows = snapshot.first_recommendations[period];
+    const rows = (metric === 'opens' ? snapshot.work_opens : snapshot.first_recommendations)[period];
     if (!rows.length) {
       section.append(el('p', 'stats-empty', '集計を準備しています。'));
       return section;
     }
     const ranks = rankWorks(rows, works);
     if (!ranks.length) {
-      section.append(el('p', 'stats-empty', period === 'today' ? '本日の初回推薦は、まだ記録されていません。' : '初回推薦は、まだ記録されていません。'));
+      section.append(el('p', 'stats-empty', metric === 'opens'
+        ? 'この期間のpixivへの移動は、まだ記録されていません。'
+        : 'この期間の初回推薦は、まだ記録されていません。'));
       return section;
     }
     const list = el('ol', 'stats-ranking-list');
+    list.tabIndex = 0;
+    list.setAttribute('aria-label', `${heading}のランキング。横にスクロールできます`);
     for (const row of ranks) {
       const item = el('li', 'stats-ranking-item');
       item.value = row.rank;
-      const content = el('div', 'stats-ranking-copy');
-      const link = el('a', 'stats-work-link', row.work.title);
-      // Destinations come from the already validated public work catalog, never the statistics file.
-      let url;
-      try { url = new URL(row.work.pixiv_url); } catch { continue; }
-      if (url.protocol !== 'https:' || url.hostname !== 'www.pixiv.net' || url.username || url.password) continue;
-      link.href = url.href;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.setAttribute('data-stats-link', `${period}:${row.work_id}`);
-      link.setAttribute('aria-label', `『${row.work.title}』をpixivで読む（新しいタブで開きます）`);
-      link.addEventListener('click', () => { try { onWorkClick(row.work_id, period); } catch { /* Navigation is independent of measurement. */ } });
-      content.append(link, el('span', 'stats-ranking-count', `最初の一作として ${countFormat.format(row.count)}回`));
-      item.append(el('span', 'stats-rank', `${row.rank}位`), content);
+      const trigger = el('button', 'stats-work-button');
+      trigger.type = 'button';
+      trigger.setAttribute('data-stats-focus', `${metric}:${period}:${row.work_id}`);
+      trigger.setAttribute('aria-haspopup', 'dialog');
+      trigger.setAttribute('aria-label', `${row.rank}位 『${row.work.title}』の紹介を開く、${countFormat.format(row.count)}回`);
+      const art = workArtByWork?.[row.work_id];
+      // Images come only from the approved local illustration catalog, never from a report.
+      if (typeof art?.preview === 'string' && /^assets\/works\/[0-9]+-preview\.webp$/.test(art.preview)) {
+        const image = el('img', 'stats-work-image');
+        image.src = new URL(`../${art.preview}`, import.meta.url).href;
+        image.alt = '';
+        image.width = 160;
+        image.height = 240;
+        image.loading = 'lazy';
+        image.decoding = 'async';
+        image.addEventListener('error', () => trigger.replaceChildren(el('span', 'stats-work-placeholder', row.work.title)));
+        trigger.append(image);
+      } else {
+        trigger.append(el('span', 'stats-work-placeholder', row.work.title));
+      }
+      trigger.addEventListener('click', () => onWorkSelect(row.work_id, { metric, period, trigger }));
+      item.append(el('span', 'stats-rank', `${row.rank}位`), trigger,
+        el('span', 'stats-ranking-count', `${countFormat.format(row.count)}回`));
       list.append(item);
     }
     section.append(list);
     return section;
   }
 
-  function drawRankings(node, status) {
-    node.replaceChildren(el('p', 'stats-intro', '一回の案内で、最初にご紹介したお話を数えています。同じ順位のお話は並べてご案内します。'));
-    if (status.ready) node.append(meta(status));
-    node.append(drawRanking('today', status), drawRanking('all_time', status));
-    if (status.ready) node.append(el('p', 'stats-meta', `累計は ${snapshot.collection_started_on} から。本日分は更新時点の速報です。`));
+  function drawRankings(node, status, entry) {
+    const choices = [['recommendations', '青娥のお薦め'], ['opens', 'みんなが選んだ']];
+    const tabs = el('div', 'stats-tabs');
+    tabs.setAttribute('role', 'tablist');
+    tabs.setAttribute('aria-label', 'ランキングの種類');
+    const panelId = `stats-panel-${entry.rankingId}`;
+    function activate(metric) {
+      selectedMetric = metric;
+      drawRankings(node, status, entry);
+      [...node.querySelectorAll('button')].find(button => button.getAttribute('data-stats-focus') === `tab:${metric}`)?.focus();
+    }
+    choices.forEach(([metric, label], index) => {
+      const tab = el('button', 'stats-tab', label);
+      tab.type = 'button';
+      tab.id = `stats-tab-${entry.rankingId}-${metric}`;
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-selected', String(selectedMetric === metric));
+      tab.setAttribute('aria-controls', panelId);
+      tab.setAttribute('data-stats-focus', `tab:${metric}`);
+      tab.tabIndex = selectedMetric === metric ? 0 : -1;
+      tab.addEventListener('click', () => activate(metric));
+      tab.addEventListener('keydown', event => {
+        let next;
+        if (event.key === 'ArrowRight') next = (index + 1) % choices.length;
+        else if (event.key === 'ArrowLeft') next = (index + choices.length - 1) % choices.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = choices.length - 1;
+        else return;
+        event.preventDefault();
+        activate(choices[next][0]);
+      });
+      tabs.append(tab);
+    });
+    const panel = el('div', 'stats-tab-panel');
+    panel.id = panelId;
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', `stats-tab-${entry.rankingId}-${selectedMetric}`);
+    const summary = el('div', 'stats-summary');
+    summary.append(el('p', 'stats-intro', selectedMetric === 'opens'
+      ? 'pixivへのリンクが押された回数です。'
+      : '最初の一作としてご紹介した回数です。'));
+    panel.append(summary);
+    node.replaceChildren(tabs, panel);
+    const periods = el('div', 'stats-periods');
+    periods.append(drawRanking(selectedMetric, 'recent', status), drawRanking(selectedMetric, 'all_time', status));
+    panel.append(periods);
+    if (status.ready) {
+      const statusLine = el('div', 'stats-status');
+      statusLine.append(meta(status));
+      panel.append(statusLine);
+    }
   }
 
   function drawFootprint(node, workId, status) {
@@ -232,12 +295,12 @@ export function createPublicStats({ works, fetcher = globalThis.fetch, now = () 
     if (slot.signature === signature) return;
     slot.signature = signature;
     const focused = document.activeElement;
-    const focusKey = focused && node.contains?.(focused) ? focused.getAttribute?.('data-stats-link') : null;
+    const focusKey = focused && node.contains?.(focused) ? focused.getAttribute?.('data-stats-focus') : null;
     if (slot.kind === 'counter') drawCounter(node, status);
-    else if (slot.kind === 'rankings') drawRankings(node, status);
+    else if (slot.kind === 'rankings') drawRankings(node, status, slot);
     else drawFootprint(node, slot.workId, status);
     if (focusKey) {
-      [...node.querySelectorAll('a')].find(link => link.getAttribute('data-stats-link') === focusKey)?.focus({ preventScroll: true });
+      [...node.querySelectorAll('button')].find(button => button.getAttribute('data-stats-focus') === focusKey)?.focus({ preventScroll: true });
     }
   }
 
@@ -259,7 +322,7 @@ export function createPublicStats({ works, fetcher = globalThis.fetch, now = () 
     const node = el(kind === 'footprint' ? 'p' : 'div', kind === 'counter' ? 'visitor-counter' : kind === 'rankings' ? 'public-rankings' : 'stats-footprint');
     if (kind === 'counter') node.setAttribute('aria-label', '来訪者カウンター');
     for (const existing of slots) if (!existing.ref.deref()) slots.delete(existing);
-    const entry = { kind, workId, ref: new WeakRef(node) };
+    const entry = { kind, workId, ref: new WeakRef(node), rankingId: ++rankingId };
     slots.add(entry);
     draw(entry);
     return node;

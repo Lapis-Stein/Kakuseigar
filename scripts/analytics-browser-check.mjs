@@ -20,12 +20,14 @@ const origin = new URL(base).origin;
 const runtime = JSON.parse(await readFile(path.join(root, 'data/runtime.json'), 'utf8'));
 const instant = new Date();
 const calendar = jstCalendar(instant);
-const rows = runtime.works.map((work, index) => ({ work_id: work.id, count: runtime.works.length - index }));
+const rows = runtime.works.map((work, index) => ({ work_id: work.id,
+  count: runtime.works.length - (index === 3 ? 2 : index) }));
 const snapshot = {
-  schema_version: 1, status: 'ready', generated_at: instant.toISOString(), time_zone: 'Asia/Tokyo',
-  collection_started_on: calendar.day, day: calendar.day, month: calendar.month,
+  schema_version: 2, status: 'ready', generated_at: instant.toISOString(), time_zone: 'Asia/Tokyo',
+  collection_started_on: calendar.day, recent_started_on: calendar.day, day: calendar.day, month: calendar.month,
   visits: { today: 7, all_time: 71 },
-  first_recommendations: { today: rows, month: rows, all_time: rows },
+  first_recommendations: { recent: rows, month: rows, all_time: rows },
+  work_opens: { recent: rows, all_time: rows },
 };
 const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
   '.json': 'application/json', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.png': 'image/png' };
@@ -197,19 +199,49 @@ try {
   assert.equal(custom().length, 3, 'Reviewing a result does not recommend it again');
 
   await click(page.getByRole('link', { name: 'みんなへのお薦め' }));
-  await page.getByRole('heading', { name: '本日のお薦めランキング' }).waitFor();
+  await page.getByRole('tab', { name: '青娥のお薦め' }).waitFor();
   await screenshot('statistics-desktop.png');
   await page.setViewportSize({ width: 390, height: 844 });
   await screenshot('statistics-mobile.png');
+  const gallery = page.locator('.stats-ranking-list').first();
+  assert.equal(await gallery.locator('button').count(), 4, 'Both works tied at third place remain in the gallery');
+  assert.equal(await gallery.evaluate(node => node.scrollWidth > node.clientWidth), true,
+    'The fixed-width gallery scrolls within the mobile panel');
+  await gallery.locator('button').last().focus();
+  await waitFor(async () => await gallery.evaluate(node => node.scrollLeft > 0), 'Keyboard focus reveals off-screen tied work');
+  await gallery.locator('button').first().focus();
   await page.setViewportSize({ width: 1280, height: 960 });
-  await external(page.locator('[data-stats-link^="today:"]').first());
+  let rankingCard = page.locator(`[data-stats-focus="recommendations:recent:${runtime.works[0].id}"]`);
+  await click(rankingCard);
+  await page.getByRole('dialog').waitFor();
+  assert.equal(custom().length, 3, 'Opening a gallery preview does not record a click');
+  const modal = page.getByRole('dialog');
+  assert.equal(await modal.locator('h2').innerText(), runtime.works[0].title);
+  const preview = modal.locator('.ranking-work-image');
+  await preview.evaluate(image => image.decode());
+  assert.match(await preview.getAttribute('src'), new RegExp(`/assets/works/${runtime.works[0].id}-preview\\.webp$`));
+  await screenshot('ranking-popup-desktop.png');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await screenshot('ranking-popup-mobile.png');
+  await page.setViewportSize({ width: 1280, height: 960 });
+  await external(modal.getByRole('link', { name: 'pixivで読む' }));
   await waitFor(() => custom().length === 4, 'Ranking click counted separately');
   assert.equal(custom()[3].params.recommendation_context, 'ranking');
-  assert.equal(custom()[3].params.link_source, 'ranking_today');
+  assert.equal(custom()[3].params.link_source, 'ranking_recent');
   assert.equal(custom()[3].params.work_id, `work_${rows[0].work_id}`);
   assert.equal(Object.hasOwn(custom()[3].params, 'first_work_open'), false);
-  await external(page.locator('[data-stats-link^="today:"]').first());
+  await external(modal.getByRole('link', { name: 'pixivで読む' }));
   assert.equal(custom().length, 4, 'Repeated ranking clicks are limited within a document');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('body').evaluate(node => node.classList.contains('has-ranking-dialog')), false);
+  assert.equal(await rankingCard.evaluate(node => node === document.activeElement), true);
+  await click(page.getByRole('tab', { name: 'みんなが選んだ' }));
+  assert.equal(custom().length, 4, 'Changing ranking tabs does not send analytics');
+  rankingCard = page.locator(`[data-stats-focus="opens:recent:${runtime.works[0].id}"]`);
+  await click(rankingCard);
+  await external(page.getByRole('dialog').getByRole('link', { name: 'pixivで読む' }));
+  assert.equal(custom().length, 4, 'The same work and period share click deduplication across both tabs');
+  await click(page.getByRole('dialog').getByRole('button', { name: '閉じる ×' }));
   assert.equal(requests.stats, 1, 'Ranking and footprint displays share one snapshot');
 
   await click(page.getByRole('button', { name: '案内に戻る', exact: true }));

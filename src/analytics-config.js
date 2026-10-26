@@ -2,5 +2,5 @@
 export const ANALYTICS_CONFIG = Object.freeze({
   measurementId: 'G-LX9EPBLR4G',
   canonicalUrl: 'https://lapis-stein.github.io/Kakuseigar/',
-  appVersion: '20261026-1',
+  appVersion: '20261026-2',
 });

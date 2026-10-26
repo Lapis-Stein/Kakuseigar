@@ -6,7 +6,7 @@ export const ANALYTICS_VERSION = '1';
 const CANONICAL_URL = 'https://lapis-stein.github.io/Kakuseigar/';
 const COUNTERS = ['question_count', 'ordinary_question_count', 'favorite_question_count',
   'answer_count', 'skip_count', 'undo_count', 'favorite_answer_count'];
-const RANKING_SOURCES = new Set(['ranking_today', 'ranking_all_time']);
+const RANKING_SOURCES = new Set(['ranking_today', 'ranking_recent', 'ranking_all_time']);
 const RECOMMENDATION_SOURCES = new Set(['result', 'history']);
 const MAX_COUNTER = 999;
 const MAX_QUESTIONS = 500;

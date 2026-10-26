@@ -90,8 +90,8 @@ test('reload, review and repeated recommendation cannot inflate counts', () => {
 
 test('ranking clicks are independent of recommended conversions and are source limited', () => {
   const { tracker, events } = fixture();
-  assert.equal(tracker.click('01', 'ranking_today'), true);
-  assert.equal(tracker.click('01', 'ranking_today'), false);
+  assert.equal(tracker.click('01', 'ranking_recent'), true);
+  assert.equal(tracker.click('01', 'ranking_recent'), false);
   assert.equal(tracker.click('01', 'ranking_all_time'), true);
   assert.equal(tracker.click('01', 'unknown'), false);
   assert.equal(tracker.click('secret-work', 'ranking_today'), false);
@@ -104,6 +104,7 @@ test('ranking clicks are independent of recommended conversions and are source l
   assert.deepEqual(events.filter(event => event.params.work_id).map(event => event.params.work_id),
     ['work_01', 'work_01', 'work_01', 'work_01']);
   assert.equal(Object.hasOwn(events[0].params, 'play_start_day'), false);
+  assert.equal(events[0].params.link_source, 'ranking_recent');
 });
 
 test('untracked resumed quizzes are not backfilled into starts or conversion rates', () => {

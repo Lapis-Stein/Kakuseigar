@@ -4,9 +4,9 @@ import { createStorage, fingerprint } from './storage.js?v=20261023-1';
 import { QuestionPortraits } from './portraits.js';
 import { NarratorInteraction, NARRATOR_THRESHOLDS } from './narrator-interaction.js';
 import { shareWork, shareCompletion, shareRobot } from './sharing.js?v=20261025-2';
-import { createAnalytics } from './analytics.js?v=20261026-1';
-import { createPublicStats } from './public-stats.js?v=20261026-1';
-import { ANALYTICS_CONFIG } from './analytics-config.js';
+import { createAnalytics } from './analytics.js?v=20261026-2';
+import { createPublicStats } from './public-stats.js?v=20261026-4';
+import { ANALYTICS_CONFIG } from './analytics-config.js?v=20261026-2';
 
 const app = document.querySelector('#app');
 const notice = document.querySelector('#notice');
@@ -202,14 +202,16 @@ function welcome() {
     el('div', { className: 'intro-meta' }, el('span', {}, `まずは${data.rules.first_normal_result_after}問、時々寄り道`), el('span', {}, '気になる答えを選ぶだけ'))];
   if (!data.works.length) content.push(el('p', { className: 'empty-state' }, 'ただいま、お話の案内を準備しています。'));
   else if (session.state.started) {
-    content.push(el('div', { className: 'button-row' },
-      button('続きからお話しする →', () => go(activeRoute())), button('最初から遊ぶ', reset, 'text-button')));
+    content.push(el('div', { className: 'button-row welcome-actions' },
+      button('続きからお話しする →', () => go(activeRoute())),
+      el('a', { href: '#/stats', className: 'secondary-button' }, 'みんなへのお薦め'),
+      button('最初から遊ぶ', reset, 'text-button')));
   } else {
     const token = session.state.activeStepId;
-    content.push(button('青娥に聞いてもらう →', () => action(t => {
+    content.push(el('div', { className: 'button-row welcome-actions' }, button('青娥に聞いてもらう →', () => action(t => {
       session.start(t);
       recordMetric('start', session.state);
-    }, token, { replace: false })));
+    }, token, { replace: false })), el('a', { href: '#/stats', className: 'secondary-button' }, 'みんなへのお薦め')));
   }
   content.push(el('p', { className: 'intro-note' }, 'ご紹介するのは、pixivで読める東方二次創作小説です。'));
   return stage('idle', 'お探しのお話があるのでしょう？\n少し聞かせてくださいな。', content, 'welcome');
@@ -256,6 +258,48 @@ function caption(work) {
   const paragraphs = work.author_caption.split(/\n\s*\n/).filter(Boolean);
   // Preserve supplied captions verbatim, including any notices. No automatic summary.
   return el('div', { className: 'caption' }, el('p', { className: 'caption-label' }, '作者による紹介'), ...paragraphs.map(p => el('p', {}, p)));
+}
+
+function openRankedWork(workId, { period, trigger } = {}) {
+  const work = data.works.find(item => item.id === workId);
+  if (!work || !['recent', 'all_time'].includes(period) || document.querySelector('dialog[open]')) return;
+  const dialog = el('dialog', { className: 'dialog ranking-work-dialog', 'aria-labelledby': 'ranking-work-title' });
+  const close = button('閉じる ×', () => dialog.close(), 'text-button ranking-work-close', { autofocus: '' });
+  const copy = el('div', { className: 'ranking-work-copy' },
+    el('h2', { id: 'ranking-work-title' }, work.title),
+    caption(work),
+    el('div', { className: 'ranking-work-actions' },
+      workLink(work, period === 'recent' ? 'ranking_recent' : 'ranking_all_time'),
+      el('p', { className: 'fine-print' }, '新しいタブで開きます')),
+  );
+  const content = el('div', { className: 'ranking-work-content' });
+  const art = presentation.work_art_by_work?.[work.id];
+  if (typeof art?.preview === 'string' && /^assets\/works\/[0-9]+-preview\.webp$/.test(art.preview)) {
+    const image = el('img', { className: 'ranking-work-image', src: new URL('../' + art.preview, import.meta.url),
+      alt: art.alt || `『${work.title}』のイメージ画`, width: art.width, height: art.height, decoding: 'async' });
+    content.classList.add('has-art');
+    image.addEventListener('error', () => { image.remove(); content.classList.remove('has-art'); });
+    content.append(image);
+  }
+  content.append(copy);
+  dialog.append(el('div', { className: 'ranking-work-heading' },
+    el('p', { className: 'eyebrow' }, '作品のご紹介'), close), content);
+  dialog.addEventListener('click', event => {
+    if (event.target !== dialog) return;
+    const box = dialog.getBoundingClientRect();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
+  });
+  const closeOnNavigation = () => dialog.close();
+  window.addEventListener('hashchange', closeOnNavigation);
+  dialog.addEventListener('close', () => {
+    window.removeEventListener('hashchange', closeOnNavigation);
+    document.body.classList.remove('has-ranking-dialog');
+    dialog.remove();
+    if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+  }, { once: true });
+  document.body.append(dialog);
+  dialog.showModal();
+  document.body.classList.add('has-ranking-dialog');
 }
 
 function workIllustration(work) {
@@ -364,9 +408,9 @@ function about() {
 
 function statistics() {
   return stage('idle', 'これまで、どんなお話を\nお渡ししてきたでしょうね。', [
-    el('p', { className: 'eyebrow' }, 'みんなの案内記録'), title('みんなへのお薦め'),
+    el('div', { className: 'stats-screen-heading' }, title('みんなへのお薦め'),
+      button('案内に戻る', () => go(activeRoute()), 'text-button')),
     publicStats?.rankings(),
-    button('案内に戻る', () => go(activeRoute()), 'secondary-button'),
   ], 'statistics');
 }
 
@@ -482,8 +526,8 @@ async function load() {
     analytics ||= createAnalytics({ ...ANALYTICS_CONFIG, datasetVersion: presentation.dataset_version,
       workIds: data.works.map(work => work.id) });
     recordMetric('sync', session.state);
-    publicStats ||= createPublicStats({ works: data.works,
-      onWorkClick: (workId, period) => recordMetric('click', workId, period === 'today' ? 'ranking_today' : 'ranking_all_time') });
+    publicStats ||= createPublicStats({ works: data.works, workArtByWork: presentation.work_art_by_work,
+      onWorkSelect: openRankedWork });
     document.querySelector('#visit-counter').replaceChildren(publicStats.counter());
     if (!location.hash || (!['#/about', '#/stats'].includes(location.hash) && !session.state.started)) history.replaceState(null, '', activeRoute());
     render();
@@ -496,11 +540,12 @@ async function load() {
 }
 
 document.querySelector('.skip-link')?.addEventListener('click', event => { event.preventDefault(); app.focus(); });
-document.querySelector('#footer')?.append(el('span', {}, 'Kakuseigar'),
-  button('これまでのお薦め', () => session && openHistory(), 'text-button', { 'data-action': 'history', disabled: true }),
-  el('a', { href: '#/about' }, 'このサイトについて'),
-  el('a', { href: '#/stats' }, 'みんなへのお薦め'),
-  button('最初から遊ぶ', () => session && reset(), 'text-button'));
+document.querySelector('#footer')?.append(el('span', { className: 'footer-brand' }, 'Kakuseigar'),
+  el('nav', { className: 'footer-links', 'aria-label': '案内メニュー' },
+    button('これまでのお薦め', () => session && openHistory(), 'footer-button', { 'data-action': 'history', disabled: true }),
+    el('a', { href: '#/about', className: 'footer-button' }, 'このサイトについて'),
+    el('a', { href: '#/stats', className: 'footer-button' }, 'みんなへのお薦め'),
+    button('最初から遊ぶ', () => session && reset(), 'footer-button')));
 window.addEventListener('hashchange', () => { try { render(); } catch { go(activeRoute(), true); } });
 window.addEventListener('popstate', () => { if (session) render(); });
 load();

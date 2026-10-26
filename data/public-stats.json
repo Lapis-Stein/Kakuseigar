@@ -1,11 +1,13 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "status": "unconfigured",
   "generated_at": null,
   "time_zone": "Asia/Tokyo",
   "collection_started_on": null,
   "day": null,
   "month": null,
+  "recent_started_on": null,
   "visits": { "today": null, "all_time": null },
-  "first_recommendations": { "today": [], "month": [], "all_time": [] }
+  "first_recommendations": { "recent": [], "month": [], "all_time": [] },
+  "work_opens": { "recent": [], "all_time": [] }
 }
