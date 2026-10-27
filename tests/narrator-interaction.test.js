@@ -100,7 +100,8 @@ test('reloading preserves stable state without consuming randomness or keeping d
 });
 
 test('all supported return routes survive restore and unsupported routes use a null fallback', () => {
-  const valid = ['#/start', '#/play', '#/favorite', '#/history', '#/about', '#/ending', '#/result/result-1', '#/review/result-17'];
+  const valid = ['#/start', '#/play', '#/favorite', '#/history', '#/about', '#/ending', '#/result/result-1', '#/review/result-17',
+    '#/result/result-1/answers', '#/result/result-1/work', '#/review/result-17/answers', '#/review/result-17/work'];
   const invalid = [undefined, null, '', '/', '#/achievement', '#/play?next=bad', '#/result/result-0', '#/result/result-01', '#/result/result--1', '#/result/result-1/extra', 'https://example.com', 'javascript:alert(1)', '#/play\n'];
   for (const route of [...valid, ...invalid]) {
     const interaction = create();

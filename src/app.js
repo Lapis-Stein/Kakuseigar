@@ -2,11 +2,13 @@ import { validateRuntime } from './engine.js?v=20261025-1';
 import { QuizSession } from './session.js?v=20261025-1';
 import { createStorage, fingerprint } from './storage.js?v=20261023-1';
 import { QuestionPortraits } from './portraits.js';
-import { NarratorInteraction, NARRATOR_THRESHOLDS } from './narrator-interaction.js';
+import { NarratorInteraction, NARRATOR_THRESHOLDS } from './narrator-interaction.js?v=20261027-1';
 import { shareWork, shareCompletion, shareRobot } from './sharing.js?v=20261025-2';
-import { createAnalytics } from './analytics.js?v=20261026-2';
+import { createAnalytics } from './analytics.js?v=20261027-1';
 import { createPublicStats } from './public-stats.js?v=20261026-4';
-import { ANALYTICS_CONFIG } from './analytics-config.js?v=20261026-2';
+import { ANALYTICS_CONFIG } from './analytics-config.js?v=20261027-1';
+import { createResultInsights } from './result-insights.js?v=20261027-1';
+import { createResultDetails } from './result-details.js?v=20261027-1';
 
 const app = document.querySelector('#app');
 const notice = document.querySelector('#notice');
@@ -21,6 +23,7 @@ let noticeText = '';
 let lockedUntil = 0;
 let toastTimer;
 let historyReturn = '#/play';
+let renderedRoute = '';
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -261,15 +264,20 @@ function caption(work) {
 }
 
 function openRankedWork(workId, { period, trigger } = {}) {
+  if (!['recent', 'all_time'].includes(period)) return;
+  openWorkPreview(workId, { source: period === 'recent' ? 'ranking_recent' : 'ranking_all_time', trigger });
+}
+
+function openWorkPreview(workId, { source, trigger, heading = '作品のご紹介' } = {}) {
   const work = data.works.find(item => item.id === workId);
-  if (!work || !['recent', 'all_time'].includes(period) || document.querySelector('dialog[open]')) return;
+  if (!work || !['ranking_recent', 'ranking_all_time', 'related'].includes(source) || document.querySelector('dialog[open]')) return;
   const dialog = el('dialog', { className: 'dialog ranking-work-dialog', 'aria-labelledby': 'ranking-work-title' });
   const close = button('閉じる ×', () => dialog.close(), 'text-button ranking-work-close', { autofocus: '' });
   const copy = el('div', { className: 'ranking-work-copy' },
     el('h2', { id: 'ranking-work-title' }, work.title),
     caption(work),
     el('div', { className: 'ranking-work-actions' },
-      workLink(work, period === 'recent' ? 'ranking_recent' : 'ranking_all_time'),
+      workLink(work, source),
       el('p', { className: 'fine-print' }, '新しいタブで開きます')),
   );
   const content = el('div', { className: 'ranking-work-content' });
@@ -283,7 +291,7 @@ function openRankedWork(workId, { period, trigger } = {}) {
   }
   content.append(copy);
   dialog.append(el('div', { className: 'ranking-work-heading' },
-    el('p', { className: 'eyebrow' }, '作品のご紹介'), close), content);
+    el('p', { className: 'eyebrow' }, heading), close), content);
   dialog.addEventListener('click', event => {
     if (event.target !== dialog) return;
     const box = dialog.getBoundingClientRect();
@@ -337,6 +345,7 @@ function openWorkArt(work, art, trigger) {
 
 function resultView(result, historical) {
   const work = data.works.find(w => w.id === result.workId);
+  const baseRoute = `#/${historical ? 'review' : 'result'}/${result.resultId}`;
   const token = session.state.activeStepId;
   const castIds = presentation.public_cast_by_work[work.id] || [];
   const cast = work.characters.filter(c => castIds.includes(c.id));
@@ -348,7 +357,10 @@ function resultView(result, historical) {
         el('div', { className: 'work-invitation' }, result.reason ? el('p', { className: 'reason' }, result.reason) : null,
           workLink(work, historical ? 'history' : 'result', result), el('p', { className: 'fine-print' }, '新しいタブで開きます')), caption(work)),
       publicStats?.footprint(work.id),
-      cast.length ? el('div', { className: 'chip-list', 'aria-label': '登場人物' }, ...cast.map(c => el('span', { className: 'chip' }, c.name))) : null)];
+      cast.length ? el('div', { className: 'chip-list', 'aria-label': '登場人物' }, ...cast.map(c => el('span', { className: 'chip' }, c.name))) : null,
+      el('nav', { className: 'result-detail-links', 'aria-label': 'この一作を詳しく見る' },
+        el('a', { href: baseRoute + '/answers' }, '今回の関心を見る'),
+        el('a', { href: baseRoute + '/work' }, 'この作品の特徴を見る')))];
   if (result.isLast) content.push(el('div', { className: 'completion' },
     el('div', { role: 'status' }, el('strong', {}, '制覇おめでとう！'), el('p', {}, `公開${result.totalWorks}作品をご案内しました。`)),
     button('全作品紹介を共有', event => shareCompletion(result.totalWorks, presentation.site_url, event.currentTarget), 'secondary-button', { 'aria-haspopup': 'dialog' })));
@@ -357,6 +369,19 @@ function resultView(result, historical) {
   content.push(el('div', { className: 'result-actions' }, button('この結果を共有', event => shareWork(work, presentation.site_url, event.currentTarget), 'text-button', { 'aria-haspopup': 'dialog' }),
     button('これまでのお薦め', () => openHistory(), 'text-button')));
   return { node: stage(result.isLast ? 'celebrate' : 'recommend', result.lead || 'こちらのお話はいかが？', content, 'result'), castIds: cast.map(c => c.id) };
+}
+
+function resultDetails(result, historical, page) {
+  const insights = createResultInsights({ data, answers: session.state.answers, result });
+  const baseRoute = `#/${historical ? 'review' : 'result'}/${result.resultId}`;
+  const detail = createResultDetails({ data, presentation, result, insights, page, baseRoute,
+    onRelatedWork: (workId, { trigger } = {}) => {
+      if (!insights.relatedWorks.some(work => work.id === workId)) return;
+      openWorkPreview(workId, { source: 'related', trigger, heading: '近い味わいのお話' });
+    } });
+  const line = page === 'answers' ? 'お返事の中で、心が向いたものを\n少し並べてみましょうか。'
+    : 'こちらのお話には、\nこんな味わいがございます。';
+  return el('div', { className: 'stage detail-stage', 'data-screen': 'result-details' }, narrator('idle', line), detail);
 }
 
 function openHistory() {
@@ -430,6 +455,7 @@ function robotAchievement() {
 
 function render(viewOptions = {}) {
   if (!session) return;
+  const previousScroll = window.scrollY;
   let route = location.hash || activeRoute();
   const robotFinished = narratorInteraction.actor === 'broken';
   if (robotFinished) {
@@ -447,12 +473,21 @@ function render(viewOptions = {}) {
   let node, shownResult, castIds = [];
   if (robotFinished) node = robotAchievement();
   else if (route.startsWith('#/result/') || route.startsWith('#/review/')) {
-    const id = route.split('/').at(-1);
+    const match = route.match(/^#\/(result|review)\/([^/]+)(?:\/(answers|work))?$/);
+    if (!match) { history.replaceState(null, '', activeRoute()); return render(viewOptions); }
+    const [, , id, detailPage] = match;
     const result = [session.state.pendingResult, ...session.state.resultHistory].find(r => r?.resultId === id);
     if (result) {
+      // A detail URL cannot commit an unseen pending recommendation.
+      if (detailPage && !session.state.resultHistory.some(item => item.resultId === id)) {
+        history.replaceState(null, '', '#/result/' + id); return render(viewOptions);
+      }
       const historical = route.startsWith('#/review/') || session.state.phase !== 'result' || currentResult()?.resultId !== id;
-      const view = resultView(result, historical); node = view.node; castIds = view.castIds;
-      if (!historical && session.state.pendingResult) shownResult = result;
+      if (detailPage) node = resultDetails(result, historical, detailPage);
+      else {
+        const view = resultView(result, historical); node = view.node; castIds = view.castIds;
+        if (!historical && session.state.pendingResult) shownResult = result;
+      }
     } else { history.replaceState(null, '', activeRoute()); return render(viewOptions); }
   } else if (route === '#/history') node = historyView();
   else if (route === '#/favorite') node = favorite();
@@ -488,9 +523,14 @@ function render(viewOptions = {}) {
     b.setAttribute('aria-label', `これまでのお薦め（${session.state.resultHistory.length}作品）`);
   });
   updateNotice();
-  const heading = app.querySelector('[data-focus]');
+  const heading = app.querySelector('.detail-scene:not([inert]) [data-focus]') || app.querySelector('[data-focus]');
   heading?.focus({ preventScroll: true });
-  if (!viewOptions.preserveScroll && viewOptions.scrollToQuestion && window.matchMedia('(max-width: 820px)').matches
+  const detailRoute = /^#\/(result|review)\/[^/]+\/(answers|work)$/;
+  const sameDetails = detailRoute.test(route) && detailRoute.test(renderedRoute)
+    && route.replace(/\/(answers|work)$/, '') === renderedRoute.replace(/\/(answers|work)$/, '');
+  if (sameDetails || viewOptions.preserveScroll) {
+    window.scrollTo({ top: previousScroll, behavior: 'instant' });
+  } else if (viewOptions.scrollToQuestion && window.matchMedia('(max-width: 820px)').matches
       && ['question', 'favorite'].includes(node.dataset.screen)) {
     // Keep the large portrait available above, but bring the next question into view.
     node.querySelector('.scene').scrollIntoView({
@@ -500,6 +540,7 @@ function render(viewOptions = {}) {
   } else if (!viewOptions.preserveScroll) {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
+  renderedRoute = route;
   document.title = `Kakuseigar — ${presentation.site_title}`;
 }
 

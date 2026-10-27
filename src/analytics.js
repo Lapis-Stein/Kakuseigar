@@ -44,7 +44,8 @@ export function createTracker({ emit = () => {}, storage = null, now = () => new
   const dataset = identifier(datasetVersion, 'unknown');
   const app = identifier(appVersion, 'unknown');
   let active = Boolean(enabled), play = null, candidate = null;
-  const rankingClicks = new Set();
+  // These visits are separate from quiz conversions and last for this document.
+  const browsingClicks = new Set();
   const remove = () => { try { storage?.removeItem(ANALYTICS_STORAGE_KEY); } catch {} };
   const save = () => { try { if (play) storage?.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(play)); } catch {} };
   const send = (name, params) => {
@@ -163,13 +164,13 @@ export function createTracker({ emit = () => {}, storage = null, now = () => new
     },
     click(workId, source, result = null) {
       if (!active || !approved.has(workId)) return false;
-      if (RANKING_SOURCES.has(source)) {
+      if (RANKING_SOURCES.has(source) || source === 'related') {
         const key = `${source}:${workId}`;
-        if (rankingClicks.has(key)) return false;
-        rankingClicks.add(key);
+        if (browsingClicks.has(key)) return false;
+        browsingClicks.add(key);
         return send('work_opened', { analytics_version: ANALYTICS_VERSION,
           dataset_version: dataset, app_version: app, work_id: eventWorkId(workId),
-          recommendation_context: 'ranking', link_source: source });
+          recommendation_context: source === 'related' ? 'related' : 'ranking', link_source: source });
       }
       if (!RECOMMENDATION_SOURCES.has(source) || !play || play.opened.includes(workId)) return false;
       const item = record(result);

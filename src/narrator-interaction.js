@@ -36,7 +36,7 @@ export const NARRATOR_BROKEN_LINE = '……あら。お話を選ぶまで持ち�
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 const safeRoute = (route) => typeof route === 'string'
   && route === route.trim()
-  && /^#\/(?:start|play|favorite|history|about|ending|(?:result|review)\/result-[1-9]\d*)$/.test(route)
+  && /^#\/(?:start|play|favorite|history|about|ending|(?:result|review)\/result-[1-9]\d*(?:\/(?:answers|work))?)$/.test(route)
   ? route : null;
 
 /** Independent of recommendation progress, browser storage and rendering. */

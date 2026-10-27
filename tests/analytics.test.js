@@ -121,6 +121,62 @@ test('untracked resumed quizzes are not backfilled into starts or conversion rat
   assert.equal(tracker.recommend(result()), true);
 });
 
+test('related work clicks need no quiz and stay separate from ranking sources', () => {
+  const { tracker, events, store } = fixture();
+  assert.equal(tracker.click('secret-work', 'related'), false);
+  assert.equal(tracker.click('01', 'related_unknown'), false);
+  assert.equal(tracker.click('01', 'related', result()), true);
+  assert.deepEqual(events, [{ name: 'work_opened', params: {
+    analytics_version: '1', dataset_version: options.datasetVersion,
+    app_version: options.appVersion, work_id: 'work_01',
+    recommendation_context: 'related', link_source: 'related',
+  } }]);
+  assert.equal(store.getItem(ANALYTICS_STORAGE_KEY), null);
+  assert.equal(tracker.click('01', 'related'), false);
+  assert.equal(tracker.click('01', 'ranking_recent'), true);
+  assert.equal(tracker.click('01', 'ranking_recent'), false);
+  assert.equal(tracker.click('02', 'related'), true);
+  assert.deepEqual(events.map(event => event.params.recommendation_context), ['related', 'ranking', 'related']);
+});
+
+test('related browsing does not consume a recommendation, question summary or first conversion', () => {
+  const { tracker, events, store } = fixture();
+  tracker.start(quiz());
+  tracker.questionShown('q1', 'ordinary');
+  tracker.questionAction('answer');
+  const before = store.getItem(ANALYTICS_STORAGE_KEY);
+  assert.equal(tracker.click('01', 'related'), true);
+  assert.equal(store.getItem(ANALYTICS_STORAGE_KEY), before);
+  assert.equal(events.filter(event => event.name === 'work_recommended').length, 0);
+  assert.equal(Object.hasOwn(events.at(-1).params, 'first_work_open'), false);
+  assert.equal(Object.hasOwn(events.at(-1).params, 'recommendation_index'), false);
+  assert.equal(tracker.recommend(result()), true);
+  assert.equal(events.at(-1).params.first_recommendation, 'yes');
+  assert.equal(events.at(-1).params.question_count, 1);
+  assert.equal(events.at(-1).params.answer_count, 1);
+  assert.equal(tracker.click('01', 'result', result()), true);
+  assert.equal(events.at(-1).params.recommendation_context, 'recommended');
+  assert.equal(events.at(-1).params.first_work_open, 'yes');
+  assert.equal(tracker.click('01', 'history', result()), false);
+  assert.equal(tracker.click('01', 'related'), false);
+});
+
+test('related deduplication lasts for the document and disabled clicks do not reserve it', () => {
+  const { tracker, events } = fixture();
+  assert.equal(tracker.click('01', 'related'), true);
+  tracker.reset();
+  tracker.start(quiz());
+  assert.equal(tracker.click('01', 'related'), false);
+  tracker.setEnabled(false);
+  const count = events.length;
+  assert.equal(tracker.click('02', 'related'), false);
+  assert.equal(events.length, count);
+  tracker.setEnabled(true);
+  assert.equal(tracker.click('01', 'related'), false);
+  assert.equal(tracker.click('02', 'related'), true);
+  assert.equal(tracker.click('02', 'related'), false);
+});
+
 test('the play start day stays in Japan time across a later midnight', () => {
   let time = '2026-10-26T14:59:00Z';
   const { tracker, events } = fixture({ now: () => time });
