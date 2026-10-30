@@ -2251,6 +2251,75 @@
         }
       ],
       "draft_intro_by_taste": {}
+    },
+    {
+      "id": "12",
+      "title": "見初めた熱に見出す器を",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29508745",
+      "author_caption": "吉弔八千慧に借りのあった霍青娥は、勁牙組との諍いの仲裁を頼まれる。\nそこへ現れるは、驪駒早鬼。彼女の用事は鬼傑組ではなく、青い仙人様にあるようで。",
+      "taste": {
+        "banter": 4,
+        "schemes": 3,
+        "craft": 0,
+        "action": 0,
+        "warmth": 1,
+        "reflection": 1,
+        "values": 3
+      },
+      "light_entry": 3,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 2,
+            "bargaining": 2,
+            "care": 0,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "saki",
+          "name": "驪駒早鬼",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 2,
+            "bargaining": 2,
+            "care": 1,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "yachie",
+          "name": "吉弔八千慧",
+          "role": "support",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 0,
+            "bargaining": 2,
+            "care": 0,
+            "practicality": 1,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "miko",
+          "name": "豊聡耳神子",
+          "role": "indirect",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
     }
   ]
 }
