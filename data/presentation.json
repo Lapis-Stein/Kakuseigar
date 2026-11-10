@@ -1,5 +1,5 @@
 {
-  "dataset_version": "0.4-ui-1",
+  "dataset_version": "0.4-ui-20261111",
   "site_title": "青娥の小説案内",
   "site_url": "https://lapis-stein.github.io/Kakuseigar/",
   "site_description": "少しお話ししませんか。青娥が、あなたの好みに合いそうな東方二次創作小説をご案内します。",
@@ -56,6 +56,20 @@
       "width": 1024,
       "height": 1536,
       "alt": "『見初めた熱に見出す器を』のイメージ画"
+    },
+    "13": {
+      "preview": "assets/works/13-preview.webp",
+      "full": "assets/works/13.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『戯る神あれば憂う神あり』のイメージ画"
+    },
+    "14": {
+      "preview": "assets/works/14-preview.webp",
+      "full": "assets/works/14.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『夢と現が君を語れば』のイメージ画"
     },
     "01": {
       "preview": "assets/works/01-preview.webp",

@@ -14,6 +14,7 @@ function compensatedSum(values) {
 }
 const weightedProfile = (weights, profile) => compensatedSum(Object.entries(weights).map(([key, weight]) => weight * (profile[key] ?? 0)));
 const total = (weights) => compensatedSum(Object.values(weights));
+const magnitude = (profile) => Math.sqrt(compensatedSum(Object.values(profile).map((value) => value * value)));
 
 function compareText(left, right) {
   const a = Array.from(left, (value) => value.codePointAt(0));
@@ -52,6 +53,7 @@ export class Recommender {
     this.works = new Map(data.works.map((work) => [work.id, work]));
     this.maxima = this.rules.profile_maxima ?? { taste: 2, behavior: 2 };
     this.prior = this.rules.entry_prior ?? { max_points: 0, light_entry_max: 4 };
+    this.normalScoring = this.rules.normal_scoring ?? { cosine_weight: 0, action_penalty: 0, action_gain: 0 };
     this.entryPoints = entryPoints ?? this.prior.max_points;
     if (!Number.isFinite(this.entryPoints) || this.entryPoints < 0) throw new TypeError('Invalid entryPoints');
     this.tieOrder = new Map();
@@ -82,11 +84,19 @@ export class Recommender {
 
   score(work, answers) { return this._score(work, this.evidence(answers)); }
 
-  _score(work, evidence) {
+  _score(work, evidence, normal = true) {
     let taste = null;
     let behavior = null;
     let character = null;
-    if (evidence.taste !== null) taste = 100 * weightedProfile(evidence.taste, work.taste) / this.maxima.taste;
+    if (evidence.taste !== null) {
+      const dot = weightedProfile(evidence.taste, work.taste);
+      taste = 100 * dot / this.maxima.taste;
+      if (normal && this.normalScoring.cosine_weight > 0) {
+        const denominator = magnitude(evidence.taste) * magnitude(work.taste);
+        const cosine = denominator > 0 ? 100 * dot / denominator : 0;
+        taste = (1 - this.normalScoring.cosine_weight) * taste + this.normalScoring.cosine_weight * cosine;
+      }
+    }
     if (evidence.behavior !== null) {
       for (const member of work.characters) {
         if (member.behavior === null) continue;
@@ -105,7 +115,7 @@ export class Recommender {
   rank(answers, shown = [], favorite = null) {
     const seen = new Set(shown);
     const evidence = this.evidence(answers);
-    let rows = [...this.works.values()].filter((work) => !seen.has(work.id) && (!favorite || work.characters.some((member) => member.id === favorite && member.favorite_eligible))).map((work) => this._score(work, evidence));
+    let rows = [...this.works.values()].filter((work) => !seen.has(work.id) && (!favorite || work.characters.some((member) => member.id === favorite && member.favorite_eligible))).map((work) => this._score(work, evidence, !favorite));
     if (rows.length > 0 && !favorite && evidence.taste !== null) {
       const best = Math.max(...rows.map((row) => row.taste));
       rows = rows.filter((row) => row.taste >= best - this.rules.taste_candidate_band - 1e-9);
@@ -115,7 +125,11 @@ export class Recommender {
       const hasPrior = !favorite && row.combined !== null;
       row.entry_bonus = hasPrior ? this.entryPoints * (work.light_entry ?? 0) / this.prior.light_entry_max : 0;
       row.entry_penalty = hasPrior ? work.entry_penalty ?? 0 : 0;
-      row.ranking_score = row.combined === null ? null : row.combined + row.entry_bonus - row.entry_penalty;
+      const actionStrength = (work.taste.action ?? 0) / this.maxima.taste;
+      // This is an entry adjustment, not evidence that an unselected theme is disliked.
+      row.action_adjustment = !favorite && evidence.taste !== null && actionStrength > 0
+        ? actionStrength * (-this.normalScoring.action_penalty + this.normalScoring.action_gain * (evidence.taste.action ?? 0)) : 0;
+      row.ranking_score = row.combined === null ? null : row.combined + row.entry_bonus - row.entry_penalty + row.action_adjustment;
       if (favorite) row.favorite_role = work.characters.find((member) => member.id === favorite && member.favorite_eligible).role;
     }
     rows.sort((left, right) => {
@@ -188,15 +202,20 @@ export function reasonFor(data, row, answers, favorite = null) {
   if (!work) throw new RangeError(`Unknown work: ${row.work_id}`);
   const output = { kind: 'exploration', lead: '', reason: null, questionId: null, optionId: null, feature: null, characterId: null };
   let member = null;
+  let reasonScores = row;
+  if (!favorite && data.rules.normal_scoring) {
+    const engine = new Recommender(data);
+    reasonScores = engine._score(work, engine.evidence(answers), false);
+  }
   if (favorite) {
     member = work.characters.find((item) => item.id === favorite && item.favorite_eligible);
     if (!member) throw new RangeError('Favorite is not eligible in the recommended work');
     output.kind = 'favorite'; output.characterId = favorite;
-  } else if (row.combined === null) output.kind = 'no_evidence';
-  else if (row.taste !== null && row.taste >= 60) output.kind = 'taste';
-  else if (row.behavior !== null && row.behavior >= 60) {
+  } else if (reasonScores.combined === null) output.kind = 'no_evidence';
+  else if (reasonScores.taste !== null && reasonScores.taste >= 60) output.kind = 'taste';
+  else if (reasonScores.behavior !== null && reasonScores.behavior >= 60) {
     output.kind = 'behavior';
-    member = work.characters.find((item) => item.id === row.character);
+    member = work.characters.find((item) => item.id === reasonScores.character);
     output.characterId = member?.id ?? null;
   }
   if (output.kind === 'taste' || output.kind === 'behavior') {
@@ -262,6 +281,12 @@ export function validateRuntime(data) {
   object(rules.role_weights, 'rules.role_weights');
   for (const role of ROLES) number(rules.role_weights[role], `rules.role_weights.${role}`, 0, 1);
   number(rules.taste_candidate_band, 'rules.taste_candidate_band', 0, 100);
+  if (rules.normal_scoring !== undefined) {
+    const normal = object(rules.normal_scoring, 'rules.normal_scoring');
+    number(normal.cosine_weight, 'rules.normal_scoring.cosine_weight', 0, 1);
+    number(normal.action_penalty, 'rules.normal_scoring.action_penalty', 0, 100);
+    number(normal.action_gain, 'rules.normal_scoring.action_gain', 0, 100);
+  }
   object(rules.entry_prior, 'rules.entry_prior');
   number(rules.entry_prior.max_points, 'rules.entry_prior.max_points', 0, 100);
   if (rules.entry_prior.light_entry_max !== 4) fail('rules.entry_prior.light_entry_max', 'schema 0.4 requires 4');

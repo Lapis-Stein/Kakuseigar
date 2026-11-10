@@ -30,6 +30,11 @@
       "max_points": 16,
       "light_entry_max": 4
     },
+    "normal_scoring": {
+      "cosine_weight": 0.5,
+      "action_penalty": 8,
+      "action_gain": 32
+    },
     "role_weights": {
       "main": 1,
       "support": 0.6,
@@ -1582,7 +1587,7 @@
             "conviction": 0,
             "bargaining": 0,
             "care": 1,
-            "practicality": 0,
+            "practicality": 1,
             "caution": 1
           },
           "favorite_eligible": true
@@ -1853,7 +1858,7 @@
       "taste": {
         "banter": 3,
         "schemes": 0,
-        "craft": 2,
+        "craft": 3,
         "action": 0,
         "warmth": 4,
         "reflection": 0,
@@ -1868,7 +1873,7 @@
           "role": "main",
           "behavior": {
             "curiosity": 2,
-            "conviction": 0,
+            "conviction": 1,
             "bargaining": 0,
             "care": 2,
             "practicality": 0,
@@ -2094,7 +2099,7 @@
         "values": 4
       },
       "light_entry": 0,
-      "entry_penalty": 12,
+      "entry_penalty": 0,
       "characters": [
         {
           "id": "miko",
@@ -2314,6 +2319,144 @@
         {
           "id": "miko",
           "name": "豊聡耳神子",
+          "role": "indirect",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "13",
+      "title": "戯る神あれば憂う神あり",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29604921",
+      "author_caption": "あてもなく山中を歩く霍青娥。ふと見つけた知らない道――その先へ足を踏み入れようとする。\nそこへ現れるは、八坂神奈子。威厳を湛えた彼女は、どうにも通してくれそうにはない。",
+      "taste": {
+        "banter": 3,
+        "schemes": 3,
+        "craft": 4,
+        "action": 4,
+        "warmth": 1,
+        "reflection": 2,
+        "values": 3
+      },
+      "light_entry": 1,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 1,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 1,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "kanako",
+          "name": "八坂神奈子",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 2,
+            "bargaining": 0,
+            "care": 2,
+            "practicality": 1,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "suwako",
+          "name": "洩矢諏訪子",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 2,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 0,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "sanae",
+          "name": "東風谷早苗",
+          "role": "indirect",
+          "behavior": null,
+          "favorite_eligible": false
+        }
+      ],
+      "draft_intro_by_taste": {}
+    },
+    {
+      "id": "14",
+      "title": "夢と現が君を語れば",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29570783",
+      "author_caption": "いつものように霍青娥の元を訪れる豊聡耳神子。他愛ない話を重ねるうち、仙界の夜は更けてゆく。 いつもと少し違う二人の一夜。そんなひとときを、少し垣間見てみましょう。",
+      "taste": {
+        "banter": 4,
+        "schemes": 1,
+        "craft": 2,
+        "action": 0,
+        "warmth": 4,
+        "reflection": 2,
+        "values": 0
+      },
+      "light_entry": 3,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "miko",
+          "name": "豊聡耳神子",
+          "role": "main",
+          "behavior": {
+            "curiosity": 1,
+            "conviction": 1,
+            "bargaining": 1,
+            "care": 2,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 0,
+            "bargaining": 0,
+            "care": 1,
+            "practicality": 1,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "mamizou",
+          "name": "二ッ岩マミゾウ",
+          "role": "indirect",
+          "behavior": null,
+          "favorite_eligible": false
+        },
+        {
+          "id": "kogasa",
+          "name": "多々良小傘",
+          "role": "indirect",
+          "behavior": null,
+          "favorite_eligible": false
+        },
+        {
+          "id": "nitori",
+          "name": "河城にとり",
           "role": "indirect",
           "behavior": null,
           "favorite_eligible": false

@@ -277,3 +277,197 @@ test('runtime validation rejects bad references, duplicate IDs, invalid ranges, 
     assert.throws(() => validateRuntime(data), TypeError);
   }
 });
+
+
+function normalScoringFixture() {
+  const data = fixture();
+  data.rules.normal_scoring = { cosine_weight: 0.5, action_penalty: 8, action_gain: 32 };
+  data.rules.entry_prior.max_points = 0;
+  data.rules.taste_candidate_band = 100;
+  data.features.taste.action = '戦闘の見せ場';
+  data.questions.find((question) => question.id === 'T3').options[1].weights = { action: 3 };
+  for (const work of data.works) {
+    work.entry_penalty = 0;
+    work.light_entry = 0;
+    work.taste.action = 0;
+  }
+  return data;
+}
+
+const closeTo = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} is not close to ${expected}`);
+
+test('absent normal-scoring settings retain the same behavior as explicit zero settings', () => {
+  const legacy = fixture();
+  const disabled = structuredClone(legacy);
+  disabled.rules.normal_scoring = { cosine_weight: 0, action_penalty: 0, action_gain: 0 };
+  const before = new Recommender(legacy);
+  const after = new Recommender(disabled);
+  for (const answers of [[], [['T1', null]], [['T1', 'a'], ['B1', 'b']], [['T1', 'b'], ['T2', 'a']]]) {
+    assert.deepEqual(after.rank(answers), before.rank(answers));
+    assert.deepEqual(after.rank(answers, [], 'alpha'), before.rank(answers, [], 'alpha'));
+    assert.deepEqual(after.nextQuestions(answers), before.nextQuestions(answers));
+  }
+});
+
+test('cosine blending lets a focused work outrank a broadly high profile for a focused answer', () => {
+  const data = normalScoringFixture();
+  data.works = data.works.slice(0, 2);
+  data.works[0].taste = { fun: 3, quiet: 0, action: 0 };
+  data.works[1].taste = { fun: 4, quiet: 4, action: 0 };
+  const answers = [['T1', 'a']];
+  const legacy = structuredClone(data);
+  delete legacy.rules.normal_scoring;
+  assert.equal(new Recommender(legacy).rank(answers)[0].work_id, 'B');
+  const rows = new Recommender(data).rank(answers);
+  assert.equal(rows[0].work_id, 'A');
+  closeTo(rows[0].taste, 87.5);
+  closeTo(rows[1].taste, (100 + 100 / Math.sqrt(2)) / 2);
+  assert.ok(rows.every((row) => row.action_adjustment === 0));
+});
+
+test('cosine blending handles a zero work profile and an empty evidence vector without NaN', () => {
+  const data = normalScoringFixture();
+  data.works[0].taste = { fun: 0, quiet: 0, action: 0 };
+  const engine = new Recommender(data);
+  assert.equal(engine.score(data.works[0], [['T1', 'a']]).taste, 0);
+  assert.equal(engine._score(data.works[1], { taste: {}, behavior: null }).taste, 0);
+  assert.ok(engine.rank([['T1', 'a']]).every((row) => Number.isFinite(row.ranking_score)));
+});
+
+test('action adjustment responds to positive evidence while keeping unselected themes eligible', () => {
+  const data = normalScoringFixture();
+  data.works[0].taste = { fun: 4, quiet: 0, action: 4 };
+  const engine = new Recommender(data);
+  const rowForA = (answers) => engine.rank(answers).find((row) => row.work_id === 'A');
+  const unselected = rowForA([['T1', 'a']]);
+  assert.equal(unselected.action_adjustment, -8);
+  closeTo(unselected.ranking_score, unselected.combined - 8);
+  assert.equal(rowForA([['T3', 'b']]).action_adjustment, 24);
+  assert.equal(rowForA([['T1', 'a'], ['T3', 'b']]).action_adjustment, 8);
+  closeTo(rowForA([['T1', 'a'], ['T2', 'a'], ['T3', 'b']]).action_adjustment, 8 / 3);
+  assert.ok(engine.rank([['T1', 'a']]).some((row) => row.work_id === 'A'));
+});
+
+test('action correction is added after the taste candidate band and cannot revive excluded works', () => {
+  const data = normalScoringFixture();
+  data.rules.normal_scoring = { cosine_weight: 0, action_penalty: 0, action_gain: 100 };
+  data.rules.taste_candidate_band = 10;
+  data.works = data.works.slice(0, 2);
+  data.works[0].taste = { fun: 4, quiet: 0, action: 0 };
+  data.works[1].taste = { fun: 0, quiet: 0, action: 3 };
+  const answers = [['T1', 'a'], ['T3', 'b']];
+  assert.deepEqual(new Recommender(data).rank(answers).map((row) => row.work_id), ['A']);
+  data.rules.taste_candidate_band = 100;
+  const rows = new Recommender(data).rank(answers);
+  assert.equal(rows[0].work_id, 'B');
+  assert.equal(rows[0].taste, 37.5);
+  assert.equal(rows[0].action_adjustment, 37.5);
+  assert.equal(rows[0].ranking_score, 75);
+});
+
+test('missing taste and all-skip answers do not produce an action penalty or endorsement', () => {
+  const data = normalScoringFixture();
+  data.rules.entry_prior.max_points = 16;
+  data.works[0].taste.action = 4;
+  data.works[0].light_entry = 4;
+  data.works[0].entry_penalty = 12;
+  const engine = new Recommender(data);
+  const behaviorOnly = engine.rank([['T3', null], ['B1', 'a']]);
+  assert.ok(behaviorOnly.every((row) => row.taste === null && row.action_adjustment === 0));
+  const allSkip = engine.rank([['T3', null], ['B1', null]]);
+  assert.ok(allSkip.every((row) => row.action_adjustment === 0 && row.entry_bonus === 0 && row.entry_penalty === 0 && row.ranking_score === null));
+  const supported = engine.rank([['T3', 'b'], ['T1', null]]).find((row) => row.work_id === 'A');
+  assert.equal(supported.action_adjustment, 24);
+});
+
+test('favorite recommendations retain raw taste, role priority, and zero ordinary adjustments', () => {
+  const data = favoriteRolesFixture();
+  data.rules.normal_scoring = { cosine_weight: 0.5, action_penalty: 8, action_gain: 32 };
+  data.features.taste.action = '戦闘の見せ場';
+  data.works[0].taste.action = 4;
+  const legacy = structuredClone(data);
+  delete legacy.rules.normal_scoring;
+  const answers = [['T1', 'a'], ['B1', 'b']];
+  const rows = new Recommender(data).rank(answers, [], 'chosen');
+  assert.deepEqual(rows, new Recommender(legacy).rank(answers, [], 'chosen'));
+  assert.deepEqual(rows.map((row) => row.work_id), ['A', 'B', 'C']);
+  assert.equal(rows[0].taste, 25);
+  assert.ok(rows.every((row) => row.action_adjustment === 0 && row.entry_bonus === 0 && row.entry_penalty === 0));
+  assert.equal(reasonFor(data, rows[0], answers, 'chosen').kind, 'favorite');
+});
+
+test('normalized scores and action gains cannot turn a weak reason into a strong taste reason', () => {
+  const data = normalScoringFixture();
+  data.works[0].taste = { fun: 0, quiet: 0, action: 2 };
+  const engine = new Recommender(data);
+  const answers = [['T3', 'b']];
+  const row = engine.rank(answers).find((item) => item.work_id === 'A');
+  assert.equal(row.taste, 75);
+  assert.equal(row.ranking_score, 87);
+  const reason = reasonFor(data, row, answers);
+  assert.equal(reason.kind, 'exploration');
+  assert.equal(reason.reason, null);
+  assert.equal(reason.feature, null);
+  const withBehavior = [...answers, ['B1', 'a']];
+  const behavioral = reasonFor(data, engine.score(data.works[0], withBehavior), withBehavior);
+  assert.equal(behavioral.kind, 'behavior');
+  assert.equal(behavioral.questionId, 'B1');
+  assert.equal(behavioral.feature, 'curious');
+});
+
+test('normal scoring still uses actual answer evidence at the inclusive raw-reason threshold', () => {
+  const data = normalScoringFixture();
+  data.works[0].taste = { fun: 2.4, quiet: 0, action: 0 };
+  const answers = [['T1', 'a']];
+  const row = new Recommender(data).score(data.works[0], answers);
+  assert.ok(row.taste > 60);
+  const result = reasonFor(data, row, answers);
+  assert.equal(result.kind, 'taste');
+  assert.equal(result.questionId, 'T1');
+  assert.equal(result.feature, 'fun');
+});
+
+test('runtime validation accepts optional scoring settings and rejects missing or invalid coefficients', () => {
+  assert.equal(validateRuntime(fixture()), true);
+  assert.equal(validateRuntime(normalScoringFixture()), true);
+  const bad = [
+    null, [], {},
+    { cosine_weight: 0.5, action_penalty: 8 },
+    { cosine_weight: -0.1, action_penalty: 8, action_gain: 32 },
+    { cosine_weight: 1.1, action_penalty: 8, action_gain: 32 },
+    { cosine_weight: NaN, action_penalty: 8, action_gain: 32 },
+    { cosine_weight: 0.5, action_penalty: -1, action_gain: 32 },
+    { cosine_weight: 0.5, action_penalty: 101, action_gain: 32 },
+    { cosine_weight: 0.5, action_penalty: 8, action_gain: Infinity },
+    { cosine_weight: 0.5, action_penalty: 8, action_gain: -1 },
+    { cosine_weight: 0.5, action_penalty: 8, action_gain: 101 },
+    { cosine_weight: 0.5, action_penalty: 8, action_gain: '32' },
+  ];
+  for (const setting of bad) {
+    const data = fixture();
+    data.rules.normal_scoring = setting;
+    assert.throws(() => validateRuntime(data), /rules.normal_scoring/);
+  }
+});
+
+
+test('continuation compares candidate differences using the blended ordinary taste score', () => {
+  const data = normalScoringFixture();
+  data.works = data.works.slice(0, 2);
+  data.works[0].taste = { fun: 4, quiet: 3, action: 0 };
+  data.works[1].taste = { fun: 1, quiet: 0, action: 0 };
+  const question = (id, first, second) => ({
+    id, channel: 'taste', family: id, text: '読み味を選ぶ', allow_skip: true,
+    options: [{ id: 'a', text: 'ひとつを楽しむ', weights: first }, { id: 'b', text: '組み合わせを楽しむ', weights: second }],
+  });
+  data.questions = [
+    question('fun-first', { fun: 3 }, { fun: 2, quiet: 1 }),
+    question('quiet-first', { quiet: 3 }, { quiet: 2, fun: 1 }),
+    data.questions.find((item) => item.id === 'B1'),
+  ];
+  data.rules.continuation_priority = data.questions.map((item) => item.id);
+  const legacy = structuredClone(data);
+  delete legacy.rules.normal_scoring;
+  assert.equal(new Recommender(legacy).nextQuestions([])[0], 'fun-first');
+  assert.equal(new Recommender(data).nextQuestions([])[0], 'quiet-first');
+});
