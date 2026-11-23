@@ -2463,6 +2463,68 @@
         }
       ],
       "draft_intro_by_taste": {}
+    },
+    {
+      "id": "15",
+      "title": "二つ返事に二心なし",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29706793",
+      "author_caption": "いつものように神霊廟に遊びに来ていた霍青娥。何やら布都と神子が話し込んでいる様子。\n聞けば人里のある店主からの申し出があるそうで、次第に青娥も興味を惹かれていく。",
+      "taste": {
+        "banter": 3,
+        "schemes": 2,
+        "craft": 3,
+        "action": 0,
+        "warmth": 3,
+        "reflection": 2,
+        "values": 2
+      },
+      "light_entry": 3,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 0,
+            "bargaining": 1,
+            "care": 1,
+            "practicality": 1,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "futo",
+          "name": "物部布都",
+          "role": "main",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 2,
+            "bargaining": 1,
+            "care": 2,
+            "practicality": 2,
+            "caution": 2
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "miko",
+          "name": "豊聡耳神子",
+          "role": "support",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 1,
+            "bargaining": 0,
+            "care": 1,
+            "practicality": 0,
+            "caution": 0
+          },
+          "favorite_eligible": true
+        }
+      ],
+      "draft_intro_by_taste": {}
     }
   ]
 }
