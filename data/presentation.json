@@ -1,5 +1,5 @@
 {
-  "dataset_version": "0.4-ui-20261123",
+  "dataset_version": "0.4-ui-20261127",
   "site_title": "青娥の小説案内",
   "site_url": "https://lapis-stein.github.io/Kakuseigar/",
   "site_description": "少しお話ししませんか。青娥が、あなたの好みに合いそうな東方二次創作小説をご案内します。",
@@ -77,6 +77,13 @@
       "width": 1024,
       "height": 1536,
       "alt": "『二つ返事に二心なし』のイメージ画"
+    },
+    "16": {
+      "preview": "assets/works/16-preview.webp",
+      "full": "assets/works/16.webp",
+      "width": 1024,
+      "height": 1536,
+      "alt": "『名代の帰る先』のイメージ画"
     },
     "01": {
       "preview": "assets/works/01-preview.webp",

@@ -2525,6 +2525,68 @@
         }
       ],
       "draft_intro_by_taste": {}
+    },
+    {
+      "id": "16",
+      "title": "名代の帰る先",
+      "pixiv_url": "https://www.pixiv.net/novel/show.php?id=29738645",
+      "author_caption": "簡単な用命なら代わりにこなしてくれるという秘宝「原札」、手に入れたのは霍青娥。\nその使役の代償に気づいた青娥は、その取引を鴉天狗の大将飯綱丸龍に持ち掛けることにする。",
+      "taste": {
+        "banter": 2,
+        "schemes": 4,
+        "craft": 4,
+        "action": 0,
+        "warmth": 0,
+        "reflection": 2,
+        "values": 3
+      },
+      "light_entry": 2,
+      "entry_penalty": 0,
+      "characters": [
+        {
+          "id": "seiga",
+          "name": "霍青娥",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 1,
+            "bargaining": 2,
+            "care": 0,
+            "practicality": 1,
+            "caution": 1
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "megumu",
+          "name": "飯綱丸龍",
+          "role": "main",
+          "behavior": {
+            "curiosity": 2,
+            "conviction": 1,
+            "bargaining": 2,
+            "care": 0,
+            "practicality": 2,
+            "caution": 2
+          },
+          "favorite_eligible": true
+        },
+        {
+          "id": "chimata",
+          "name": "天弓千亦",
+          "role": "support",
+          "behavior": {
+            "curiosity": 0,
+            "conviction": 2,
+            "bargaining": 0,
+            "care": 0,
+            "practicality": 1,
+            "caution": 2
+          },
+          "favorite_eligible": true
+        }
+      ],
+      "draft_intro_by_taste": {}
     }
   ]
 }
